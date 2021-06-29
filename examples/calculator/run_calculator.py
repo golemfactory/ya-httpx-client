@@ -1,16 +1,15 @@
-from yagna_requests import Session
-from os import path
 import asyncio
+from os import path
+
+from yagna_requests import Session
 
 executor_cfg = {'budget': 1, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)
 
 
-@session.startup('http://calculator', 'd44c88b6c3d4a5f6e645a9e7f9ebab2cc171f402ef11da088c2d62e8')
+@session.startup('http://calculator', '855c7b4bba2ff00005a52bf29048130e8648955b020e1735b6da7fe4')
 def calculator_startup(ctx, listen_on):
     ctx.send_file('examples/calculator/calculator_server.py', path.join('/golem/work/calculator_server.py'))
-    # ctx.send_file('process_request.py', path.join('/golem/work/process_request.py'))
-    # ctx.send_file('serializable_request.py', path.join('/golem/work/serializable_request.py'))
     ctx.run("/usr/local/bin/gunicorn", "-b", listen_on, "calculator_server:app", "--daemon")
 
 
@@ -19,6 +18,7 @@ async def run_calculator():
         res = await client.get('https://www.example.org/')
         print(res)
     
+    await asyncio.Future()
     await session.close()
 
 def main():
