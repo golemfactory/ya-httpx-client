@@ -18,7 +18,7 @@ setuptools.setup(
         "requests==2.25.1",
         "requests-unixsocket==0.2.0",
         "httpx==0.18.2",
-        "yapapi-service-manager git+https://github.com/golemfactory/yapapi-service-manager.git",
+        "yapapi-service-manager @ git+https://github.com/golemfactory/yapapi-service-manager.git",
     ],
     classifiers=[
         "Development Status :: 0 - Alpha",
