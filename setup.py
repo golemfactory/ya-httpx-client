@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://handbook.golem.network/yapapi/",
     download_url="https://github.com/golemfactory/yagna-requests",
     packages=setuptools.find_packages(),
-    install_requires=["requests==2.25.1", "requests-unixsocket==0.2.0", "http==0.18.2"],
+    install_requires=["requests==2.25.1", "requests-unixsocket==0.2.0", "httpx==0.18.2"],
     classifiers=[
         "Development Status :: 0 - Alpha",
         "Framework :: YaPaPI",
