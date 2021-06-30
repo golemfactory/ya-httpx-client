@@ -1,5 +1,4 @@
 import asyncio
-from os import path
 
 from yagna_requests import Session
 
@@ -7,10 +6,9 @@ executor_cfg = {'budget': 1, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)
 
 
-@session.startup('http://calculator', '855c7b4bba2ff00005a52bf29048130e8648955b020e1735b6da7fe4')
+@session.startup('http://calculator', '040e5b765dcf008d037d5b840cf8a9678641b0ddd3b4fe3226591a11')
 def calculator_startup(ctx, listen_on):
-    ctx.send_file('examples/calculator/calculator_server.py', path.join('/golem/work/calculator_server.py'))
-    ctx.run("/usr/local/bin/gunicorn", "-b", listen_on, "calculator_server:app", "--daemon")
+    ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
 
 
 async def run_calculator():
@@ -22,7 +20,7 @@ async def run_calculator():
         req = Request.from_file('sample_request.json')
         res = await session.send('http://calculator', req)
         print("SAMPLE REQUEST", res.status, res.data)
-        
+
         req = Request.from_file('sample_request.json')
         res = await session.send('http://calculator', req)
         print("SAMPLE REQUEST 2", res.status, res.data)
