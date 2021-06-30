@@ -91,6 +91,23 @@ class Request():
             data['headers'],
         )
 
+    @classmethod
+    def from_httpx_handle_request_args(cls, method, url, headers, stream):
+        method = method.decode()
+
+        scheme, host, port, path = url
+        scheme, host, path = scheme.decode(), host.decode(), path.decode()
+
+        if port is None:
+            url = f'{scheme}://{host}{path}'
+        else:
+            url = f'{scheme}://{host}:{port}{path}'
+
+        headers = {key.decode(): val.decode() for key, val in headers}
+        data = stream.read()
+
+        return cls(method, url, data, headers)
+
     def to_file(self, fname):
         with open(fname, 'w') as f:
             f.write(self.as_json())

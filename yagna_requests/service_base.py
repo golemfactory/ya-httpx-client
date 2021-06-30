@@ -22,7 +22,6 @@ class ServiceBase(Service):
     async def start(self):
         start_steps = self._service_def['start_steps']
         start_steps(self._ctx, PROVIDER_SERVER_URL)
-        self._ctx.run('/bin/ls', '-l')
         yield self._ctx.commit()
         print("STARTED")
 

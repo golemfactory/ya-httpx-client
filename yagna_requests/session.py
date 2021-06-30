@@ -6,6 +6,17 @@ import httpx
 from yapapi_service_manager import ServiceManager
 
 from .service_base import ServiceBase
+from .serializable_request import Request
+
+
+class YagnaTransport(httpx.AsyncBaseTransport):
+    def __init__(self, service_wrapper):
+        self.service_wrapper = service_wrapper
+
+    async def handle_async_request(self, method, url, headers, stream, extensions):
+        req = Request.from_httpx_handle_request_args(method, url, headers, stream)
+        res = await self.service_wrapper.service.send(req)
+        return res.status, res.headers, httpx.ByteStream(res.data), {}
 
 
 class Session:
@@ -23,13 +34,15 @@ class Session:
 
         return define_service
 
-    async def send(self, url, req):
-        service = self.service_wrappers[url].service
-        return await service.send(req)
-
     @asynccontextmanager
     async def client(self, *args, **kwargs):
         await self.start_new_services()
+
+        mounts = kwargs.pop('mounts', {})
+        for url, service_wrapper in self.service_wrappers.items():
+            mounts[url] = YagnaTransport(service_wrapper)
+        kwargs['mounts'] = mounts
+
         async with httpx.AsyncClient(*args, **kwargs) as client:
             yield client
 

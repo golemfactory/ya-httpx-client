@@ -6,24 +6,20 @@ executor_cfg = {'budget': 1, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)
 
 
-@session.startup('http://calculator', '040e5b765dcf008d037d5b840cf8a9678641b0ddd3b4fe3226591a11')
+@session.startup('http://calc', '040e5b765dcf008d037d5b840cf8a9678641b0ddd3b4fe3226591a11')
 def calculator_startup(ctx, listen_on):
     ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
 
 
 async def run_calculator():
     async with session.client() as client:
+        for x, y in ((1, 2), (7, 8)):
+            res = await client.get(f'http://calc/add/{x}/{y}')
+            print(f"CALCULATED: {x} + {y} =", res.content.decode())
+
+        #   NOTE: requests sent somewhere else work exactly as in httpx.AsyncClient()
         res = await client.get('https://www.example.org/')
         print("EXAMPLE ORG", res)
-
-        from yagna_requests.serializable_request import Request
-        req = Request.from_file('sample_request.json')
-        res = await session.send('http://calculator', req)
-        print("SAMPLE REQUEST", res.status, res.data)
-
-        req = Request.from_file('sample_request.json')
-        res = await session.send('http://calculator', req)
-        print("SAMPLE REQUEST 2", res.status, res.data)
 
     await session.close()
 
