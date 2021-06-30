@@ -23,6 +23,10 @@ class Session:
 
         return define_service
 
+    async def send(self, url, req):
+        service = self.service_wrappers[url].service
+        return await service.send(req)
+
     @asynccontextmanager
     async def client(self, *args, **kwargs):
         await self.start_new_services()

@@ -16,10 +16,19 @@ def calculator_startup(ctx, listen_on):
 async def run_calculator():
     async with session.client() as client:
         res = await client.get('https://www.example.org/')
-        print(res)
-    
-    await asyncio.Future()
+        print("EXAMPLE ORG", res)
+
+        from yagna_requests.serializable_request import Request
+        req = Request.from_file('sample_request.json')
+        res = await session.send('http://calculator', req)
+        print("SAMPLE REQUEST", res.status, res.data)
+        
+        req = Request.from_file('sample_request.json')
+        res = await session.send('http://calculator', req)
+        print("SAMPLE REQUEST 2", res.status, res.data)
+
     await session.close()
+
 
 def main():
     try:
