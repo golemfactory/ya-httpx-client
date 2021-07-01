@@ -10,12 +10,15 @@ from .serializable_request import Request
 
 
 class YagnaTransport(httpx.AsyncBaseTransport):
-    def __init__(self, service_wrapper):
-        self.service_wrapper = service_wrapper
+    def __init__(self, request_queue):
+        self.request_queue = request_queue
 
     async def handle_async_request(self, method, url, headers, stream, extensions):
         req = Request.from_httpx_handle_request_args(method, url, headers, stream)
-        res = await self.service_wrapper.service.send(req)
+        fut = asyncio.Future()
+        self.request_queue.put_nowait((req, fut))
+        await fut
+        res = fut.result()
         return res.status, res.headers, httpx.ByteStream(res.data), {}
 
 
@@ -23,14 +26,20 @@ class Session:
     def __init__(self, executor_cfg):
         self.manager = ServiceManager(executor_cfg)
         self.service_defs = {}
-        self.service_wrappers = {}
 
     def startup(self, url, image_hash):
         if url in self.service_defs:
             raise KeyError(f'Service for url {url} already exists')
 
         def define_service(start_steps):
-            self.service_defs[url] = {'image_hash': image_hash, 'start_steps': start_steps}
+            request_queue = asyncio.Queue()
+            self.service_defs[url] = {
+                'image_hash': image_hash,
+                'start_steps': start_steps,
+                'queue': request_queue,
+                'cnt': 1,
+                'service_wrappers': []
+            }
 
         return define_service
 
@@ -39,16 +48,21 @@ class Session:
         await self.start_new_services()
 
         mounts = kwargs.pop('mounts', {})
-        for url, service_wrapper in self.service_wrappers.items():
-            mounts[url] = YagnaTransport(service_wrapper)
+        for url, service_def in self.service_defs.items():
+            mounts[url] = YagnaTransport(service_def['queue'])
         kwargs['mounts'] = mounts
 
         async with httpx.AsyncClient(*args, **kwargs) as client:
             yield client
 
     async def start_new_services(self):
-        new_urls = [url for url in self.service_defs.keys() if url not in self.service_wrappers]
-        start_services = [self._start_service(url) for url in new_urls]
+        start_services = []
+
+        for url, service_def in self.service_defs.items():
+            expected_cnt = service_def['cnt']
+            current_cnt = len(service_def['service_wrappers'])
+            start_services += [self._start_service(url) for _ in range(current_cnt, expected_cnt)]
+
         await asyncio.gather(*start_services)
 
     async def _start_service(self, url):
@@ -57,7 +71,7 @@ class Session:
         cls = type(class_name, (ServiceBase,), {'_service_def': self.service_defs[url]})
 
         service_wrapper = self.manager.create_service(cls)
-        self.service_wrappers[url] = service_wrapper
+        self.service_defs[url]['service_wrappers'].append(service_wrapper)
 
         while True:
             if service_wrapper.status == 'running':
