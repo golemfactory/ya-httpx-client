@@ -27,7 +27,7 @@ class Session:
         self.manager = ServiceManager(executor_cfg)
         self.service_defs = {}
 
-    def startup(self, url, image_hash):
+    def startup(self, url, image_hash, cnt=1):
         if url in self.service_defs:
             raise KeyError(f'Service for url {url} already exists')
 
@@ -37,7 +37,7 @@ class Session:
                 'image_hash': image_hash,
                 'start_steps': start_steps,
                 'queue': request_queue,
-                'cnt': 1,
+                'cnt': cnt,
                 'service_wrappers': []
             }
 

@@ -24,7 +24,7 @@ class ServiceBase(Service):
         queue = self._service_def['queue']
         while True:
             req, fut = await queue.get()
-            print("GOT REQ", req)
+            print(f"processing {req.url} on {self.provider_name}")
             with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
                 req.to_file(in_file.name)
                 self._ctx.send_file(in_file.name, '/golem/work/req.json')
