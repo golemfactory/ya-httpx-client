@@ -2,7 +2,7 @@ import asyncio
 
 from yagna_requests import Session
 
-executor_cfg = {'budget': 1, 'subnet_tag': 'devnet-beta.2'}
+executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)
 
 
@@ -20,8 +20,8 @@ async def add(client, x, y):
 async def run_calculator():
     async with session.client() as client:
         requests = []
-        for x in range(0, 5):
-            for y in range(0, 5):
+        for x in range(0, 50):
+            for y in range(0, 50):
                 requests.append(add(client, x, y))
         await asyncio.gather(*requests)
 
