@@ -11,17 +11,17 @@ PROVIDER_URL = 'unix:///tmp/golem.sock'
 class ServiceBase(Service):
     @classmethod
     async def get_payload(cls):
-        print("SERVICE DEF", cls._service_def)
-        return await vm.repo(image_hash=cls._service_def['image_hash'])
+        image_hash = cls._yhc_cluster.image_hash
+        return await vm.repo(image_hash=image_hash)
 
     async def start(self):
-        start_steps = self._service_def['start_steps']
+        start_steps = self._yhc_cluster.start_steps
         start_steps(self._ctx, PROVIDER_URL)
         yield self._ctx.commit()
         print("STARTED")
 
     async def run(self):
-        queue = self._service_def['queue']
+        queue = self._yhc_cluster.request_queue
         while True:
             req, fut = await queue.get()
             print(f"processing {req.url} on {self.provider_name}")
