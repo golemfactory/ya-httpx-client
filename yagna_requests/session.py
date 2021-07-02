@@ -40,7 +40,7 @@ class Cluster:
             if service_wrapper.status in ('pending', 'starting'):
                 print(f"waiting for the service, current status: {service_wrapper.status}")
             elif service_wrapper.status == 'running':
-                pass
+                print(f"Service {service_wrapper.service.provider_name} is running")
             else:
                 print(f"Restarting service because it is {service_wrapper.status}")
                 service_wrapper.service.restart_failed_request()
