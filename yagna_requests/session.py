@@ -23,17 +23,33 @@ class Cluster:
 
     def start(self):
         current_cnt = len(self.manager_tasks)
-        [asyncio.create_task(self._manage()) for _ in range(current_cnt, self.cnt)]
+        self.manager_tasks += [asyncio.create_task(self._manage()) for _ in range(current_cnt, self.cnt)]
 
     def stop(self):
         [task.cancel() for task in self.manager_tasks]
 
     async def _manage(self):
-        service_wrapper = self.manager.create_service(self.cls)
+        service_wrapper = None
 
         while True:
-            print(f"status: {service_wrapper.status}")
+            if service_wrapper is None:
+                service_wrapper = self.manager.create_service(self.cls)
+
             await asyncio.sleep(1)
+
+            if service_wrapper.status in ('pending', 'starting'):
+                print(f"waiting for the service, current status: {service_wrapper.status}")
+            elif service_wrapper.status == 'running':
+                pass
+            else:
+                print(f"Restarting service because it is {service_wrapper.status}")
+                service_wrapper.service.restart_failed_request()
+
+                #   TODO: We don't stop the old service_wrapper, because it is dead either way.
+                #         This is a todo because we don't know what to do with the "unresponsive" state of the
+                #         service - we should either wait for it to start responding, or do service_wrapper.close().
+                #         Currently I don't know if "unresponsive" ever happens at all.
+                service_wrapper = None
 
     def _create_cls(self):
         #   NOTE: this is ugly, but we're waiting for https://github.com/golemfactory/yapapi/issues/372
