@@ -26,7 +26,7 @@ class ServiceBase(Service):
         start_steps = self._yhc_cluster.start_steps
         start_steps(self._ctx, PROVIDER_URL)
         yield self._ctx.commit()
-        print("STARTED")
+        print(f"STARTED ON {self.provider_name}")
 
     async def run(self):
         while True:
@@ -41,8 +41,8 @@ class ServiceBase(Service):
 
                 #   FAIL ON PURPOSE, SOMETIMES
                 #   TODO: remove this
-                if random.random() < 0.01:
-                    raise Exception("oooops")
+                if random.random() < 0.1:
+                    raise Exception(f"oooops, failed on request {req.url}")
 
                 res = Response.from_file(out_file.name)
 

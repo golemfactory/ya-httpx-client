@@ -40,7 +40,7 @@ class Cluster:
             if service_wrapper.status in ('pending', 'starting'):
                 print(f"waiting for the service, current status: {service_wrapper.status}")
             elif service_wrapper.status == 'running':
-                print(f"Service {service_wrapper.service.provider_name} is running")
+                pass
             else:
                 print(f"Restarting service because it is {service_wrapper.status}")
                 service_wrapper.service.restart_failed_request()
@@ -75,12 +75,12 @@ class Session:
         self.manager = ServiceManager(executor_cfg)
         self.clusters = {}
 
-    def startup(self, url, image_hash, cnt=1):
+    def startup(self, url, image_hash, service_cnt=1):
         if url in self.clusters:
             raise KeyError(f'Service for url {url} already exists')
 
         def define_service(start_steps):
-            self.clusters[url] = Cluster(self.manager, image_hash, start_steps, cnt)
+            self.clusters[url] = Cluster(self.manager, image_hash, start_steps, service_cnt)
 
         return define_service
 

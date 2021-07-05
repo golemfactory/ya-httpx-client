@@ -17,13 +17,42 @@ async def add(client, x, y):
     print(f"CALCULATED: {x} + {y} =", res.content.decode())
 
 
+async def add_many_times(client, total_request_cnt, max_concurrent_requests):
+    '''
+    total_request_cnt
+        Number of requests (additions) to be performed.
+    max_concurrent_requests
+        How many requests could be performed at the same time.
+        Lower than the number of providers working -> we'll have some idle provider(s) all the time
+        Much higher than the number of providers working -> requests that failed & caused provider recycling
+        will be performed much later than they could/should be (they go to the end of the queue)
+    '''
+    pairs = [(x, 1) for x in range(0, total_request_cnt)]
+
+    current_requests_cnt = 0
+    all_requests = []
+
+    async def run_single_request(x, y):
+        await add(client, x, y)
+
+        nonlocal current_requests_cnt
+        current_requests_cnt -= 1
+
+    while len(all_requests) < len(pairs):
+        if current_requests_cnt == max_concurrent_requests:
+            await asyncio.sleep(0.1)
+            continue
+
+        x, y = pairs[len(all_requests)]
+        all_requests.append(asyncio.create_task(run_single_request(x, y)))
+        current_requests_cnt += 1
+
+    await asyncio.gather(*all_requests)
+
+
 async def run_calculator():
     async with session.client() as client:
-        requests = []
-        for x in range(0, 50):
-            for y in range(0, 50):
-                requests.append(add(client, x, y))
-        await asyncio.gather(*requests)
+        await add_many_times(client, 50, 3)
 
     await session.close()
 
