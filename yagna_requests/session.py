@@ -10,6 +10,13 @@ from .serializable_request import Request
 
 
 class Cluster:
+    '''
+    Q: Here is a Cluster, and we have a `yapapi.Cluster`. Both seem to wrap a bunch of services.
+       Do we need two separate clusters for this?
+    A: In the future, this Cluster and `yapapi.Cluster` and also `yapapi_service_manager.ServiceWrapper`
+       should be merged into the same cluster-wrapper-thingy, but we can't do this without yapapi-side modifications.
+       Currently I don't think `yapapi.Cluster` could be used instead of this one.
+    '''
     def __init__(self, manager, image_hash, start_steps, cnt):
         self.manager = manager
         self.image_hash = image_hash
@@ -42,22 +49,26 @@ class Cluster:
             elif service_wrapper.status == 'running':
                 pass
             else:
-                print(f"Restarting service because it is {service_wrapper.status}")
+                print(f"Replacing service on {service_wrapper.service.provider_name} - it is {service_wrapper.status}")
                 service_wrapper.service.restart_failed_request()
 
                 #   TODO: We don't stop the old service_wrapper, because it is dead either way.
-                #         This is a todo because we don't know what to do with the "unresponsive" state of the
-                #         service - we should either wait for it to start responding, or do service_wrapper.close().
-                #         Currently I don't know if "unresponsive" ever happens at all.
+                #         This way we distinguish "failed" and "stopped" wrappers (although we don't
+                #         use this distinction). Think again if this is harmless.
                 service_wrapper = None
 
     def _create_cls(self):
         #   NOTE: this is ugly, but we're waiting for https://github.com/golemfactory/yapapi/issues/372
         class_name = 'Service_' + uuid.uuid4().hex
+
+        #   NOTE: 'yhc' is from `yapapi-httpx-client', but I hope this will be removed before we release this
         return type(class_name, (ServiceBase,), {'_yhc_cluster': self})
 
 
 class YagnaTransport(httpx.AsyncBaseTransport):
+    '''
+    https://www.python-httpx.org/advanced/#writing-custom-transports
+    '''
     def __init__(self, request_queue):
         self.request_queue = request_queue
 
