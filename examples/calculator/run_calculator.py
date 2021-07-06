@@ -6,7 +6,11 @@ executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)
 
 
-@session.startup('http://calc', '040e5b765dcf008d037d5b840cf8a9678641b0ddd3b4fe3226591a11', 3)
+@session.startup(
+    url='http://calc',
+    image_hash='040e5b765dcf008d037d5b840cf8a9678641b0ddd3b4fe3226591a11',
+    service_cnt=3,
+)
 def calculator_startup(ctx, listen_on):
     ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
 
