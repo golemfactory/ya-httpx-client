@@ -76,8 +76,7 @@ class YagnaTransport(httpx.AsyncBaseTransport):
         req = Request.from_httpx_handle_request_args(method, url, headers, stream)
         fut = asyncio.Future()
         self.request_queue.put_nowait((req, fut))
-        await fut
-        res = fut.result()
+        res = await fut
         return res.status, res.headers, httpx.ByteStream(res.data), {}
 
 

@@ -4,6 +4,6 @@
 
 * additional more complex example, with multiple servers
 
-## Random notes
+## Possible improvements
 
 * `startup` might be optional when https://github.com/golemfactory/yagna/issues/1350 is done
