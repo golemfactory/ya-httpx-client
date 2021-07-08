@@ -1,5 +1,4 @@
 from tempfile import NamedTemporaryFile
-import random
 
 from yapapi.services import Service
 from yapapi.payload import vm
@@ -39,13 +38,7 @@ class ServiceBase(Service):
                 self._ctx.download_file('/golem/work/res.json', out_file.name)
                 yield self._ctx.commit()
 
-                #   FAIL ON PURPOSE, SOMETIMES
-                #   TODO: remove this
-                if random.random() < 0.1:
-                    raise Exception(f"oooops, failed on request {req.url}")
-
                 res = Response.from_file(out_file.name)
-
                 fut.set_result(res)
 
     def restart_failed_request(self):

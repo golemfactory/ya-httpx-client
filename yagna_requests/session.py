@@ -33,7 +33,8 @@ class Cluster:
         self.manager_tasks += [asyncio.create_task(self._manage()) for _ in range(current_cnt, self.cnt)]
 
     def stop(self):
-        [task.cancel() for task in self.manager_tasks]
+        for task in self.manager_tasks:
+            task.cancel()
 
     async def _manage(self):
         service_wrapper = None
@@ -106,8 +107,10 @@ class Session:
             yield client
 
     def start_new_services(self):
-        [cluster.start() for cluster in self.clusters.values()]
+        for cluster in self.clusters.values():
+            cluster.start()
 
     async def close(self):
-        [cluster.stop() for cluster in self.clusters.values()]
+        for cluster in self.clusters.values():
+            cluster.stop()
         await self.manager.close()

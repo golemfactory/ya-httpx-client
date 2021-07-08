@@ -56,13 +56,15 @@ class Request:
         if '://' not in new_base_url:
             raise ValueError(f"Missing schema in url {new_base_url}")
 
-        old_url_parts = list(urlsplit(self.url))
-        old_base_url_parts = old_url_parts[:2] + ['', '', '']
-        old_base_url = urlunsplit(old_base_url_parts)
-
         new_base_url = new_base_url.rstrip('/')
 
-        self.url = self.url.replace(old_base_url, new_base_url, 1)
+        self.url = self.url.replace(self.base_url, new_base_url, 1)
+
+    @property
+    def base_url(self):
+        url_parts = list(urlsplit(self.url))
+        base_url_parts = url_parts[:2] + ['', '', '']
+        return urlunsplit(base_url_parts)
 
     @classmethod
     def from_flask_request(cls):
