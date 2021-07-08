@@ -31,27 +31,17 @@ async def add_many_times(client, total_request_cnt, max_concurrent_requests):
         Much higher than the number of providers working -> requests that failed & caused provider recycling
         will be performed much later than they could/should be (they go to the end of the queue)
     '''
-    pairs = [(x, 1) for x in range(0, total_request_cnt)]
+    add_args_queue = asyncio.Queue()
+    for x in range(total_request_cnt):
+        add_args_queue.put_nowait((x, 1))
 
-    current_requests_cnt = 0
-    all_requests = []
+    async def add_from_queue():
+        while not add_args_queue.empty():
+            x, y = add_args_queue.get_nowait()
+            await add(client, x, y)
 
-    async def run_single_request(x, y):
-        await add(client, x, y)
-
-        nonlocal current_requests_cnt
-        current_requests_cnt -= 1
-
-    while len(all_requests) < len(pairs):
-        if current_requests_cnt == max_concurrent_requests:
-            await asyncio.sleep(0.1)
-            continue
-
-        x, y = pairs[len(all_requests)]
-        all_requests.append(asyncio.create_task(run_single_request(x, y)))
-        current_requests_cnt += 1
-
-    await asyncio.gather(*all_requests)
+    tasks = [asyncio.create_task(add_from_queue()) for _ in range(max_concurrent_requests)]
+    await asyncio.gather(*tasks)
 
 
 async def run_calculator():
