@@ -23,6 +23,7 @@ classes, in this order:
         Response.from_file
     Called directly here, to compare with the original request
         Request.from_dict
+        Request.from_httpx_request
 
 NOTE: there are some other methods defined on those objects and they are *not* tested here.
 '''
@@ -30,7 +31,7 @@ import asyncio
 
 import pytest
 
-from .sample_requests import sample_requests, SAMPLE_URL
+from .sample_requests import sample_requests, BASE_URL
 from yagna_requests import Session, serializable_request
 
 EXECUTOR_CFG = {
@@ -39,17 +40,17 @@ EXECUTOR_CFG = {
 }
 
 STARTUP_CFG = {
-    'url': SAMPLE_URL,
+    'url': BASE_URL,
     #   Image created from `docker build tests/echo_server/`
     'image_hash': '39fc9be3ffef142ae02c57a398d87e4a0ffc32c22c2497516e955466',
     'service_cnt': 1,
 }
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def event_loop():
     '''
-    We want to have a single event loop for a whole testing session https://stackoverflow.com/a/49940520/15851655
+    We want to have a single event loop for all tests in this file https://stackoverflow.com/a/49940520/15851655
     '''
     loop = asyncio.get_event_loop()
     yield loop
@@ -60,7 +61,7 @@ def echo_server_startup(ctx, listen_on):
     ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "echo_server:app", "--daemon")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 async def client():
     #   TODO command arg for subnet_tag
     session = Session(EXECUTOR_CFG)
@@ -72,19 +73,21 @@ async def client():
 
 def assert_request_equals(req_1, req_2):
     assert req_1.method == req_2.method
-    assert req_1.url == req_2.url
     assert req_1.data == req_2.data
+
+    url_1 = req_1.url.rstrip('/')
+    url_2 = req_2.url.rstrip('/')
+    assert url_1 == url_2
 
     headers_1 = {key.lower(): val.lower() for key, val in req_1.headers.items()}
     headers_2 = {key.lower(): val.lower() for key, val in req_2.headers.items()}
-    headers_1.pop('accept-encoding', None)
-    headers_2.pop('accept-encoding', None)
     assert headers_1 == headers_2
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('httpx_req', sample_requests)
-async def test_on_provider(client, httpx_req):
+@pytest.mark.parametrize('method, url, kwargs', sample_requests)
+async def test_on_provider(client, method, url, kwargs):
+    httpx_req = client.build_request(method, url, **kwargs)
     response = await client.send(httpx_req)
     assert response.status_code == 200
     req_data = response.json()['req']
