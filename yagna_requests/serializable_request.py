@@ -85,6 +85,10 @@ class Request:
     @classmethod
     def from_json(cls, json_data):
         data = json.loads(json_data)
+        return cls.from_dict(data)
+
+    @classmethod
+    def from_dict(cls, data):
         return cls(
             data['method'],
             data['url'],
@@ -108,6 +112,15 @@ class Request:
         data = stream.read()
 
         return cls(method, url, data, headers)
+
+    @classmethod
+    def from_httpx_request(cls, req):
+        return cls(
+            req.method,
+            str(req.url),
+            req.read(),
+            dict(req.headers),
+        )
 
     def to_file(self, fname):
         with open(fname, 'w') as f:

@@ -1,7 +1,7 @@
 '''
-E2E test for "all" possible requests. Test goes like this:
+E2E tests for many different requests. Test goes like this:
 1. Initialize a few services with echo-like server
-2. For each predefined request
+2. For each predefined httpx.Request:
     *   send it to the provider
     *   ensure response contains the original request
 
@@ -10,16 +10,19 @@ classes, in this order:
     Called when request is being sent to the provider:
         Request.from_httpx_handle_request_args
         Request.to_file
-    Called on provider
+    Called on provider when request is sent to the echo server
         Request.from_file
         Request.as_requests_request
+    Called on provider by the echo server
+        Request.from_flask_request
+        Request.as_dict
+    Called on provider when echo server response is processed
         Response.from_requests_response
         Response.to_file
     Called when response from the provider is processed:
         Response.from_file
     Called directly here, to compare with the original request
-        Request.from_json
-        Request.as_httpx_request
+        Request.from_dict
 
 NOTE: there are some other methods defined on those objects and they are *not* tested here.
 '''
@@ -28,8 +31,7 @@ import asyncio
 import pytest
 
 from .sample_requests import sample_requests, SAMPLE_URL
-from yagna_requests import Session
-
+from yagna_requests import Session, serializable_request
 
 EXECUTOR_CFG = {
     'budget': 1,
@@ -38,7 +40,8 @@ EXECUTOR_CFG = {
 
 STARTUP_CFG = {
     'url': SAMPLE_URL,
-    'image_hash': '040e5b765dcf008d037d5b840cf8a9678641b0ddd3b4fe3226591a11',
+    #   Image created from `docker build tests/echo_server/`
+    'image_hash': '39fc9be3ffef142ae02c57a398d87e4a0ffc32c22c2497516e955466',
     'service_cnt': 1,
 }
 
@@ -54,7 +57,7 @@ def event_loop():
 
 
 def echo_server_startup(ctx, listen_on):
-    ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
+    ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "echo_server:app", "--daemon")
 
 
 @pytest.fixture(scope='session')
@@ -67,10 +70,26 @@ async def client():
     await session.close()
 
 
+def assert_request_equals(req_1, req_2):
+    assert req_1.method == req_2.method
+    assert req_1.url == req_2.url
+    assert req_1.data == req_2.data
+
+    headers_1 = {key.lower(): val.lower() for key, val in req_1.headers.items()}
+    headers_2 = {key.lower(): val.lower() for key, val in req_2.headers.items()}
+    headers_1.pop('accept-encoding', None)
+    headers_2.pop('accept-encoding', None)
+    assert headers_1 == headers_2
+
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize('src_req', sample_requests)
-async def test_on_provider(client, src_req):
-    response = await client.send(src_req)
-    print(response)
-    print(response.content.decode())
-    assert True
+@pytest.mark.parametrize('httpx_req', sample_requests)
+async def test_on_provider(client, httpx_req):
+    response = await client.send(httpx_req)
+    assert response.status_code == 200
+    req_data = response.json()['req']
+
+    returned_req = serializable_request.Request.from_dict(req_data)
+    expected_req = serializable_request.Request.from_httpx_request(httpx_req)
+
+    assert_request_equals(returned_req, expected_req)
