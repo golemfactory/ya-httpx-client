@@ -20,6 +20,10 @@ setuptools.setup(
         "httpx==0.18.2",
         "yapapi-service-manager @ git+https://github.com/golemfactory/yapapi-service-manager.git",
     ],
+    tests_require=[
+        "pytest==6.2.3",
+        "pytest-asyncio==0.15.1",
+    ],
     classifiers=[
         "Development Status :: 0 - Alpha",
         "Framework :: YaPaPI",
