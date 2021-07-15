@@ -1,7 +1,8 @@
 '''
 E2E tests for many different requests. Test goes like this:
 1. Initialize a few services with echo-like server
-2. For each predefined httpx.Request:
+2. For each predefined request definition
+    *   create a httpx.Request
     *   send it to the provider
     *   ensure response contains the original request
 
@@ -42,8 +43,8 @@ EXECUTOR_CFG = {
 
 STARTUP_CFG = {
     'url': BASE_URL,
-    #   Image created from `docker build tests/echo_server/`
-    'image_hash': 'cadb48ec91b7f162666afcca98e6ebfb8215649411373861a26d7f07',
+    #   Image created from `docker build . -f tests/echo_server/Dockerfile`
+    'image_hash': 'ad5cb060b69f6097ab41431f56a9b81e18e60d423b267eb16b090585',
     'service_cnt': 1,
 }
 

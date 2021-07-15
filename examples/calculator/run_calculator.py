@@ -8,7 +8,7 @@ session = Session(executor_cfg)
 
 @session.startup(
     url='http://calc',
-    image_hash='78be48312b494ac182ee3dd2d8ddb9bc2059000d42366528c51f3986',
+    image_hash='5c541543ed50237dfd6c70c526cc5d0aac0513cbb04231b1f4f53ef4',
     service_cnt=3,
 )
 def calculator_startup(ctx, listen_on):
