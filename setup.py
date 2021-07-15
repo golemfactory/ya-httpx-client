@@ -21,7 +21,7 @@ test_requirements += [
 
 
 setuptools.setup(
-    name="yagna-requests",
+    name="ya-httpx-client",
     version="0.0.0",
     author="Golem Factory, Jan Betley",
     author_email="contact@golem.network, jan.betley@golem.network",
@@ -29,7 +29,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://handbook.golem.network/yapapi/",
-    download_url="https://github.com/golemfactory/yagna-requests",
+    download_url="https://github.com/golemfactory/ya-httpx-client",
     packages=setuptools.find_packages(),
 
     #   NOTE: all requirements are in "extras", because there are no common dependencies
