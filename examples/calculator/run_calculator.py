@@ -1,6 +1,6 @@
 import asyncio
 
-from yagna_requests.session import Session
+from ya_httpx_client.session import Session
 
 executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)

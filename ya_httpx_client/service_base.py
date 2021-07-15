@@ -34,7 +34,7 @@ class ServiceBase(Service):
             with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
                 req.to_file(in_file.name)
                 self._ctx.send_file(in_file.name, '/golem/work/req.json')
-                self._ctx.run('/bin/sh', '-c', f'python -m yagna_requests --url {PROVIDER_URL} req.json res.json')
+                self._ctx.run('/bin/sh', '-c', f'python -m ya_httpx_client --url {PROVIDER_URL} req.json res.json')
                 self._ctx.download_file('/golem/work/res.json', out_file.name)
                 yield self._ctx.commit()
 
