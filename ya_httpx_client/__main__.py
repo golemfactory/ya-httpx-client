@@ -1,5 +1,5 @@
 import click
-from yagna_requests.serializable_request import Request, Response
+from ya_httpx_client.serializable_request import Request, Response
 import requests_unixsocket
 
 

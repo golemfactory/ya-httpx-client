@@ -1,4 +1,4 @@
-# yagna-requests
+# ya-httpx-client
 
 ## PLANNED FEATURES
 
