@@ -1,7 +1,8 @@
 '''
 E2E tests for many different requests. Test goes like this:
 1. Initialize a few services with echo-like server
-2. For each predefined httpx.Request:
+2. For each predefined request definition
+    *   create a httpx.Request
     *   send it to the provider
     *   ensure response contains the original request
 
@@ -32,7 +33,8 @@ import asyncio
 import pytest
 
 from .sample_requests import sample_requests, BASE_URL
-from yagna_requests import Session, serializable_request
+from yagna_requests.session import Session
+from yagna_requests import serializable_request
 
 EXECUTOR_CFG = {
     'budget': 1,
@@ -41,8 +43,8 @@ EXECUTOR_CFG = {
 
 STARTUP_CFG = {
     'url': BASE_URL,
-    #   Image created from `docker build tests/echo_server/`
-    'image_hash': '39fc9be3ffef142ae02c57a398d87e4a0ffc32c22c2497516e955466',
+    #   Image created from `docker build . -f tests/echo_server/Dockerfile`
+    'image_hash': 'ad5cb060b69f6097ab41431f56a9b81e18e60d423b267eb16b090585',
     'service_cnt': 1,
 }
 
