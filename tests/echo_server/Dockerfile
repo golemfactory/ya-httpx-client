@@ -6,7 +6,7 @@ VOLUME /golem/work
 #   This is necessary only as long as we install yagna-requests from git
 RUN apt-get update && \
     apt-get install -y git
-RUN pip install git+https://github.com/golemfactory/yagna-requests.git@johny-b/poc-APPS-122
+RUN pip install git+https://github.com/golemfactory/yagna-requests.git@johny-b/improved-installation-APPS-213#egg=yagna-requests[provider]
 
 #   Install dependencies & code
 RUN pip install Flask==2.0.1 gunicorn==20.1.0

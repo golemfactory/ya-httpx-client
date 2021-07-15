@@ -43,7 +43,7 @@ EXECUTOR_CFG = {
 STARTUP_CFG = {
     'url': BASE_URL,
     #   Image created from `docker build tests/echo_server/`
-    'image_hash': '39fc9be3ffef142ae02c57a398d87e4a0ffc32c22c2497516e955466',
+    'image_hash': 'cadb48ec91b7f162666afcca98e6ebfb8215649411373861a26d7f07',
     'service_cnt': 1,
 }
 
