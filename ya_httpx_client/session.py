@@ -21,20 +21,40 @@ class Cluster:
         self.manager = manager
         self.image_hash = image_hash
         self.start_steps = start_steps
-        self.cnt = cnt
+
+        self.expected_cnt = cnt
 
         self.request_queue = asyncio.Queue()
         self.cls = self._create_cls()
 
+        self.new_services_starter_task = None
         self.manager_tasks = []
 
+    @property
+    def cnt(self):
+        current_manager_tasks = [task for task in self.manager_tasks if not task.done()]
+        return len(current_manager_tasks)
+
     def start(self):
-        current_cnt = len(self.manager_tasks)
-        self.manager_tasks += [asyncio.create_task(self._manage()) for _ in range(current_cnt, self.cnt)]
+        if self.new_services_starter_task is None:
+            self.new_services_starter_task = asyncio.create_task(self._start_new_services())
 
     def stop(self):
         for task in self.manager_tasks:
             task.cancel()
+        if self.new_services_starter_task is not None:
+            self.new_services_starter_task.cancel()
+
+    def resize(self, new_cnt):
+        self.expected_cnt = new_cnt
+
+    async def _start_new_services(self):
+        while True:
+            new_tasks = [asyncio.create_task(self._manage()) for _ in range(self.cnt, self.expected_cnt)]
+            if new_tasks:
+                print(f"CREATED {len(new_tasks)} NEW TASKS")
+            self.manager_tasks += new_tasks
+            await asyncio.sleep(0.1)
 
     async def _manage(self):
         service_wrapper = None
@@ -42,6 +62,11 @@ class Cluster:
         while True:
             if service_wrapper is None:
                 service_wrapper = self.manager.create_service(self.cls)
+
+            if self.expected_cnt < self.cnt:
+                print("STOPPING BECAUSE THERE IS TOO MUCH OF US")
+                service_wrapper.stop()
+                break
 
             await asyncio.sleep(1)
 
@@ -85,6 +110,9 @@ class Session:
     def __init__(self, executor_cfg):
         self.manager = ServiceManager(executor_cfg)
         self.clusters = {}
+
+    def resize(self, url, cnt):
+        self.clusters[url].resize(cnt)
 
     def startup(self, url, image_hash, service_cnt=1):
         if url in self.clusters:
