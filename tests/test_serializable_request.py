@@ -32,7 +32,8 @@ import asyncio
 import pytest
 
 from .sample_requests import sample_requests, BASE_URL
-from yagna_requests import Session, serializable_request
+from yagna_requests.session import Session
+from yagna_requests import serializable_request
 
 EXECUTOR_CFG = {
     'budget': 1,

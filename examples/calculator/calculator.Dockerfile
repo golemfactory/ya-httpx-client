@@ -8,7 +8,7 @@ RUN apt-get update && \
     apt-get install -y git
 
 #   This is *required* in every image that is supposed to work with yagna-requests
-RUN pip install git+https://github.com/golemfactory/yagna-requests.git@johny-b/poc-APPS-122
+RUN pip install git+https://github.com/golemfactory/yagna-requests.git@johny-b/improved-installation-APPS-213#egg=yagna-requests[provider]
 
 #   And this is calculator-related code (this part will be different in other examples). 
 RUN pip install Flask==2.0.1 gunicorn==20.1.0

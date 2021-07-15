@@ -11,6 +11,7 @@ requestor_requirements = [
 provider_requirements = [
     "requests==2.25.1",
     "requests-unixsocket==0.2.0",
+    "click==8.0.1",
 ]
 test_requirements = [
     "pytest==6.2.3",

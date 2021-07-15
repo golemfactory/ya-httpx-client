@@ -1,4 +1,3 @@
-import requests
 import json
 from urllib.parse import urlsplit, urlunsplit
 
@@ -24,7 +23,7 @@ class Response:
         )
 
     @classmethod
-    def from_requests_response(cls, res: requests.Response):
+    def from_requests_response(cls, res):
         return cls(res.status_code, res.content, dict(res.headers))
 
     def to_file(self, fname):
@@ -138,6 +137,8 @@ class Request:
         }
 
     def as_requests_request(self):
+        #   Imported here, because we use this only on the provider side
+        import requests
         req = requests.Request(
             method=self.method,
             url=self.url,

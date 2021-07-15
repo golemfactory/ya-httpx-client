@@ -1,6 +1,6 @@
 import asyncio
 
-from yagna_requests import Session
+from yagna_requests.session import Session
 
 executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)
@@ -8,7 +8,7 @@ session = Session(executor_cfg)
 
 @session.startup(
     url='http://calc',
-    image_hash='040e5b765dcf008d037d5b840cf8a9678641b0ddd3b4fe3226591a11',
+    image_hash='cc1b3087abaf183704f57c50fa8fe1a6803e7c356cb991b68164bc69',
     service_cnt=3,
 )
 def calculator_startup(ctx, listen_on):
