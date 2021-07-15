@@ -13,7 +13,8 @@ provider_requirements = [
     "requests-unixsocket==0.2.0",
     "click==8.0.1",
 ]
-test_requirements = [
+test_requirements = requestor_requirements.copy()
+test_requirements += [
     "pytest==6.2.3",
     "pytest-asyncio==0.15.1",
 ]
@@ -38,8 +39,9 @@ setuptools.setup(
     extras_require={
         'requestor': requestor_requirements,
         'provider': provider_requirements,
+        'tests': test_requirements,
     },
-    tests_require=requestor_requirements + test_requirements,
+    tests_require=test_requirements,
     classifiers=[
         "Development Status :: 0 - Alpha",
         "Framework :: YaPaPI",
