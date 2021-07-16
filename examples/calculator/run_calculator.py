@@ -9,7 +9,7 @@ session = Session(executor_cfg)
 @session.startup(
     url='http://calc',
     image_hash='25f09e17c34433f979331edf4f3b47b2ca330ba2f8acbfe2e3dbd9c3',
-    service_cnt=3,
+    init_size=3,
 )
 def calculator_startup(ctx, listen_on):
     ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")

@@ -1,6 +1,6 @@
 '''
 E2E tests for many different requests. Test goes like this:
-1. Initialize a few services with echo-like server
+1. Initialize a service with echo-like server
 2. For each predefined request definition
     *   create a httpx.Request
     *   send it to the provider
@@ -45,7 +45,6 @@ STARTUP_CFG = {
     'url': BASE_URL,
     #   Image created from `docker build . -f tests/echo_server/Dockerfile`
     'image_hash': 'bdadcf8955356d10c025411a2b47cabe67a4668f3603499737e8d74d',
-    'service_cnt': 1,
 }
 
 

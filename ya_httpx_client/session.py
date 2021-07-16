@@ -115,13 +115,13 @@ class Session:
     def set_size(self, url, size):
         self.clusters[url].set_size(size)
 
-    def startup(self, url, image_hash, service_cnt=1):
+    def startup(self, url, image_hash, init_size=1):
         if url in self.clusters:
             raise KeyError(f'Service for url {url} already exists')
 
         def define_service(start_steps):
             self.clusters[url] = Cluster(self.manager, image_hash, start_steps)
-            self.set_size(url, service_cnt)
+            self.set_size(url, init_size)
 
         return define_service
 
