@@ -41,7 +41,7 @@ session.set_size('http://any_name', 7)
 
 By default, a single instance of a service is created. We can change this by setting `init_size` in `@session.startup`
 to a different value, or by calling `session.set_size`. This value doesn't have to be an integer, it might also be a
-callable that takes a `ya_httpx_client.session.Cluster` object as an argument and returns integer:
+callable that takes a `ya_httpx_client.session.Cluster` object as an argument and returns an integer:
 
 ```python
 def calculate_new_size(cluster):
@@ -67,11 +67,7 @@ session.set_size('http://any_name', LoadBalancer)
 ```
 
 If the last case, we have no control on how often `int(load_balancer_object)` will be called, so the implementation
-should be a little more clever, at least to avoid too frequent changes - check [SimpleLoadBalancer](ya_httpx_client/provider_auto_balance)
+should be a little more clever, at least to avoid too frequent changes - check [SimpleLoadBalancer](ya_httpx_client/provider_auto_balance.py)
 for an example.
-    
-## Possible improvements
 
-*   `startup` might be optional when https://github.com/golemfactory/yagna/issues/1350 is done
-*   `on_service_stop` = [restart, raise, ignore]
-*   faster communication when the VPN is ready
+NOTE: setting size to anything other than an integer this should be considered an experimental feature.
