@@ -1,4 +1,4 @@
-import setuptools
+import setuptools  # type: ignore
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -31,6 +31,7 @@ setuptools.setup(
     url="https://handbook.golem.network/yapapi/",
     download_url="https://github.com/golemfactory/ya-httpx-client",
     packages=setuptools.find_packages(),
+    package_data={'ya_httpx_client': ['py.typed']},
 
     #   NOTE: all requirements are in "extras", because there are no common dependencies
     #         for the requestor and provider side, so the library has to be installed either
