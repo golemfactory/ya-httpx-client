@@ -67,7 +67,7 @@ session.set_size('http://any_name', LoadBalancer)
 ```
 
 If the last case, we have no control on how often `int(load_balancer_object)` will be called, so the implementation
-should be a little more clever, at least to avoid too frequent changes - check `ya_httpx_client.provider_auto_balance.SimpleLoadBalancer`
+should be a little more clever, at least to avoid too frequent changes - check [SimpleLoadBalancer](ya_httpx_client/provider_auto_balance)
 for an example.
     
 ## Possible improvements
