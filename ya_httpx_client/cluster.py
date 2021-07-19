@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING
 from .service_base import ServiceBase
 
 if TYPE_CHECKING:
-    from typing import Callable, Union, SupportsInt, List
+    from typing import Callable, Union, SupportsInt, List, Type, Optional
     from yapapi_service_manager import ServiceManager
+    from yapapi import WorkContext
 
 
 class Cluster:
@@ -18,7 +19,7 @@ class Cluster:
        should be merged into the same cluster-wrapper-thingy, but we can't do this without yapapi-side modifications.
        Currently I don't think `yapapi.Cluster` could be used instead of this one.
     '''
-    def __init__(self, manager: 'ServiceManager', image_hash: str, start_steps):
+    def __init__(self, manager: 'ServiceManager', image_hash: str, start_steps: 'Callable[[WorkContext, str], None]'):
         self.manager = manager
         self.image_hash = image_hash
         self.start_steps = start_steps
@@ -32,44 +33,44 @@ class Cluster:
 
         #   Task that starts new services will be stored here (created later, because now we might not
         #   have a loop running yet)
-        self._new_services_starter_task = None
+        self._new_services_starter_task: 'Optional[asyncio.Task]' = None
 
         #   Each task in this lists corresponds to a single instance of yapapi_service_manager.ServiceWrapper
         #   (and thus to a single instance of a running service, assuming it already started and didn't stop)
         self._manager_tasks: 'List[asyncio.Task]' = []
 
         #   This is a workaround for a missing yapapi feature
-        self._cls = self._create_cls()
+        self._cls: 'Type[ServiceBase]' = self._create_cls()
 
     @property
-    def cnt(self):
+    def cnt(self) -> int:
         current_manager_tasks = [task for task in self._manager_tasks if not task.done()]
         return len(current_manager_tasks)
 
-    def start(self):
+    def start(self) -> None:
         if self._new_services_starter_task is None:
             self._new_services_starter_task = asyncio.create_task(self._start_new_services())
 
-    def stop(self):
+    def stop(self) -> None:
         for task in self._manager_tasks:
             task.cancel()
         if self._new_services_starter_task is not None:
             self._new_services_starter_task.cancel()
 
-    def set_size(self, size: 'Union[int, Callable[[Cluster], SupportsInt]]'):
+    def set_size(self, size: 'Union[int, Callable[[Cluster], SupportsInt]]') -> None:
         if isinstance(size, int):
             self.expected_cnt = size
         else:
             self.expected_cnt = size(self)
 
-    async def _start_new_services(self):
+    async def _start_new_services(self) -> None:
         while True:
             expected_cnt = int(self.expected_cnt)
             new_tasks = [asyncio.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
             self._manager_tasks += new_tasks
             await asyncio.sleep(1)
 
-    async def _manage_single_service(self):
+    async def _manage_single_service(self) -> None:
         service_wrapper = None
 
         while True:
@@ -96,7 +97,7 @@ class Cluster:
                 #         use this distinction). Think again if this is harmless.
                 service_wrapper = None
 
-    def _create_cls(self):
+    def _create_cls(self) -> 'Type[ServiceBase]':
         #   NOTE: this is ugly, but we're waiting for https://github.com/golemfactory/yapapi/issues/372
         class_name = 'Service_' + uuid.uuid4().hex
 

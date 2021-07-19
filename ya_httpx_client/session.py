@@ -9,7 +9,7 @@ from .serializable_request import Request
 from .cluster import Cluster
 
 if TYPE_CHECKING:
-    from typing import Dict, Callable, SupportsInt, Union, AsyncGenerator
+    from typing import Dict, Callable, SupportsInt, Union, AsyncGenerator  # pylint: disable=ungrouped-imports
     from yapapi import WorkContext
 
 
@@ -34,7 +34,7 @@ class Session:
         self.manager = ServiceManager(executor_cfg)
         self.clusters: 'Dict[str, Cluster]' = {}
 
-    def set_cluster_size(self, url: str, size: 'Union[int, Callable[[Cluster], SupportsInt]]'):
+    def set_cluster_size(self, url: str, size: 'Union[int, Callable[[Cluster], SupportsInt]]') -> None:
         self.clusters[url].set_size(size)
 
     def startup(

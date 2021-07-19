@@ -41,6 +41,6 @@ class ServiceBase(Service):
                 res = Response.from_file(out_file.name)
                 fut.set_result(res)
 
-    def restart_failed_request(self):
+    def restart_failed_request(self) -> None:
         if self.current_fut is not None and not self.current_fut.done():
             self.queue.put_nowait((self.current_req, self.current_fut))
