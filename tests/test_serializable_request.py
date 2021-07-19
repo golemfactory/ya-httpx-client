@@ -32,9 +32,9 @@ import asyncio
 
 import pytest
 
-from .sample_requests import sample_requests, BASE_URL
 from ya_httpx_client.session import Session
 from ya_httpx_client import serializable_request
+from .sample_requests import sample_requests, BASE_URL
 
 EXECUTOR_CFG = {
     'budget': 1,
@@ -67,8 +67,8 @@ async def client():
     #   TODO command arg for subnet_tag
     session = Session(EXECUTOR_CFG)
     session.startup(**STARTUP_CFG)(echo_server_startup)
-    async with session.client() as client:
-        yield client
+    async with session.client() as cli:
+        yield cli
     await session.close()
 
 
@@ -87,7 +87,7 @@ def assert_request_equals(req_1, req_2):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('method, url, kwargs', sample_requests)
-async def test_on_provider(client, method, url, kwargs):
+async def test_on_provider(client, method, url, kwargs):  # pylint: disable=redefined-outer-name
     httpx_req = client.build_request(method, url, **kwargs)
     response = await client.send(httpx_req)
     assert response.status_code == 200

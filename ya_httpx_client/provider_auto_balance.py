@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from ya_httpx_client.session import Cluster
 
 
-class SimpleLoadBalancer:
+class SimpleLoadBalancer:  # pylint: disable=too-few-public-methods
     '''
     NOTE: this implementation is only an example how such things should be done.
 
@@ -36,7 +36,7 @@ class SimpleLoadBalancer:
         current_cnt = self.cnt
         current_queue_size = self.cluster.request_queue.qsize()
 
-        if current_cnt is None:
+        if current_cnt is None:  # pylint: disable=no-else-return
             #   Initial value
             return 3
         elif not current_queue_size and not self.prev_queue_size:

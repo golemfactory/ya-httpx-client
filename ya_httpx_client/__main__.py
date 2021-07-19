@@ -1,6 +1,7 @@
 import click
-from ya_httpx_client.serializable_request import Request, Response
 import requests_unixsocket  # type: ignore
+
+from ya_httpx_client.serializable_request import Request, Response
 
 
 @click.command()
@@ -28,7 +29,7 @@ def _adjust_url(url):
     '''
     Only current usecase:
         unix:///tmp/golem.sock/  --> http+unix://%2Ftmp%2Fgolem.sock
-        
+
     NOTE: urllib.parse is not used, because it doesn't work well with urls with empty host,
           e.g. with the one above
     '''
@@ -54,4 +55,4 @@ def _adjust_url(url):
 
 
 if __name__ == '__main__':
-    process_request()
+    process_request()  # pylint: disable=no-value-for-parameter

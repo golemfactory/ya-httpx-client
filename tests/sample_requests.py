@@ -12,8 +12,8 @@ sample_requests = [
     ('GET', BASE_URL, {'cookies': {'peanut': 'butter'}}),
 
     ('PUT', BASE_URL + '/file', {
-        'files': {'some-file': open('.gitignore', 'rb'),
-                  'other-file': open('tests/echo_server/echo_server.py', 'r')}}),
+        'files': {'some-file': open('.gitignore', 'rb'),  # pylint: disable=consider-using-with
+                  'other-file': open('tests/echo_server/echo_server.py', 'r')}}),  # pylint: disable=consider-using-with
     ('post', BASE_URL, {'data': {'x': 'y'}}),
     ('post', BASE_URL, {'json': {'x': ['y', 'z', {'a': 7}]}}),
     ('POST', BASE_URL + '/some/path/?a=11', {'data': {'x': 77, 'y': 88}}),

@@ -67,12 +67,13 @@ class Request:
 
     @classmethod
     def from_flask_request(cls):
-        from flask import request
+        from flask import request  # pylint: disable=import-outside-toplevel
         return cls(request.method, request.url, request.get_data(), dict(request.headers))
 
     @classmethod
     async def from_quart_request(cls):
-        from quart import request
+        from quart import request  # pylint: disable=import-outside-toplevel
+
         data = await request.get_data()
         return cls(request.method, request.url, data, dict(request.headers))
 
@@ -138,7 +139,8 @@ class Request:
 
     def as_requests_request(self):
         #   Imported here, because we use this only on the provider side
-        import requests
+        import requests  # pylint: disable=import-outside-toplevel
+
         req = requests.Request(
             method=self.method,
             url=self.url,
