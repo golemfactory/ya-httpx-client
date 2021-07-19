@@ -1,6 +1,6 @@
 # ya-httpx-client
 
-Communicate with a provider-based http server the way you communicate with any other http server
+Communicate with a provider-based HTTP server the way you communicate with any other HTTP server.
 
 ## Introduction
 
@@ -9,11 +9,12 @@ development of [yapapi-based services](https://handbook.golem.network/requestor-
 
 Features:
 
-1. Deploy a http server on a Golem provider in an easy way. There are no requirements on the server implementation
-  (doesn't even have to be in python) except it must be capable of running in the [Golem provider image](https://handbook.golem.network/requestor-tutorials/convert-a-docker-image-into-a-golem-image).
-2. Send requests to the provider-based server using [httpx](https://www.python-httpx.org/)`.AsyncClient`, the same way
-   you would send them to any other http server. `httpx` is similar to more popular `requests`, but with async support.
-3. Restart the service on a new provider every time current agreement is terminated, in a seamless way that ensures no request is ever lost.
+1. Deploy a HTTP server on a Golem provider in an easy way. There are no requirements on the server implementation
+   (doesn't even have to be in `python`) except it must be capable of running in the 
+   [Golem provider image](https://handbook.golem.network/requestor-tutorials/convert-a-docker-image-into-a-golem-image).
+2. Send requests to the provider-based server using [httpx.AsyncClient](https://www.python-httpx.org/async/), the same way
+   you would send them to any other HTTP server. `httpx` is similar to more popular `requests`, but with async support.
+3. Restart the service on a new provider every time it stops (for whatever reason), in a seamless way that ensures no request is ever lost.
 4. Maintain multiple providers running the same server (efficient load balancing included).
 5. Change the number of providers running the server in a dynamic way.
 
@@ -21,7 +22,16 @@ NOTE: features 3-5 are useful only if your server is stateless (i.e. request/res
 
 This library is built on top of [yapapi](https://github.com/golemfactory/yapapi), there is nothing here that couldn't be done with the pure `yapapi`.
 
-## Quickstart
+## How to
+
+Every `ya-httpx-client` application is made up of 3 main components:
+* HTTP server code (that has nothing to do with Golem at all)
+* `Dockerfile` that will serve as a base for the Golem provider image
+* Requestor agent that initializes `ya-httpx-client.Session`, starts server(s) on provider(s), and uses them
+
+For a simple complete application check the [calculator example](examples/calculator).
+
+### Requestor agent quickstart
 
 ```python
 #   1.  Initialize the session with yapapi.Golem configuration. This should be done exactly once. 
@@ -30,8 +40,8 @@ session = Session(executor_cfg)
 
 #   2.  Define a service. You may define as many services as you want, provided they have different urls.
 @session.startup(
-    #   All http requests directed to host "any_name" will be processed by ...
-    url='http://any_name',
+    #   All HTTP requests directed to host "any_name" will be processed by ...
+    url='http://some_name',
     #   ...a service running on provider, in VM based on this image ...
     image_hash='25f09e17c34433f979331edf4f3b47b2ca330ba2f8acbfe2e3dbd9c3',
     #   ... and to be more exact, by one of indistinguishable services running on different providers.
@@ -40,13 +50,14 @@ session = Session(executor_cfg)
     init_cluster_size=1
 )
 def calculator_startup(ctx, listen_on):
-    #   Start the http server in the background (service will be operating only after this finished).
+    #   Start the HTTP server in the background (service will be operating only after this finished).
     ctx.run("sh", "-c", "start_my_http_server.sh")
 
 #   3.  Use the service(s)
 async def run():
     async with session.client() as client:
-        req_url = 'http://any_name/do/something'
+        #   Note 'http://some_name' prefix - it is our url from @session.startup
+        req_url = 'http://some_name/do/something'
         res = await client.post(req_url, json={'foo': 'bar'})
         assert res.status_code == 200
 
@@ -91,3 +102,14 @@ should be a little more clever, at least to avoid too frequent changes - check [
 for an example.
 
 NOTE: setting size to anything other than an integer should be considered an experimental feature.
+
+## Future development
+
+1. Additional example: `requestor-proxy` - a HTTP server running on **requestor** that serves as a proxy to server(s) running on the provider(s).
+2. Currently when the service stops it is restarted on another provider. This makes sense only for stateless services, but there is no way to turn this off.
+   The developer should decide if they want to restart the service or not (or maybe stop the execution?).
+
+## Known issues
+
+1. Communication with providers is quite slow (1-2s for each request). This will be fixed when the new communication options are implemented in [yagna](https://github.com/golemfactory/yagna)
+   (hopefully this will be in the next release).
