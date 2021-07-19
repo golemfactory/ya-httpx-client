@@ -34,6 +34,9 @@ jobs:
           pip install -r examples/calculator/requirements.txt
           pip install pytest==6.2.4
           pip install mypy==0.* pylint==2.*
+          # this is an in-function import in ya-httpx-client/serializable_request.py
+          # (not in any requirements because this function only makes sense if Quart is already used)
+          pip install Quart==0.15.1
       - name: Run mypy
         run: mypy --install-types --non-interactive .
       - name: Run pylint
