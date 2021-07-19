@@ -16,6 +16,7 @@ class YagnaTransport(httpx.AsyncBaseTransport):
         self.request_queue = request_queue
 
     async def handle_async_request(self, method, url, headers, stream, extensions):
+        # pylint: disable=too-many-arguments
         req = Request.from_httpx_handle_request_args(method, url, headers, stream)
         fut = asyncio.Future()
         self.request_queue.put_nowait((req, fut))
