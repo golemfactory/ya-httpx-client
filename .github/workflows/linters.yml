@@ -31,7 +31,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[requestor]
           pip install -e .[provider]
-          pip install examples/calculator/requirements.txt
+          pip install -r examples/calculator/requirements.txt
           pip install mypy==0.* pylint==2.*
       - name: Run mypy
         run: mypy --install-types --non-interactive .
