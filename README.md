@@ -2,6 +2,25 @@
 
 Communicate with a provider-based http server the way you communicate with any other http server
 
+## Introduction
+
+The documentation assumes reader knows what [Golem](https://www.golem.network/) is and understand basics of the 
+development of [yapapi-based services](https://handbook.golem.network/requestor-tutorials/service-development).
+
+Features:
+
+1. Deploy a http server on a Golem provider in an easy way. There are no requirements on the server implementation
+  (doesn't even have to be in python) except it must be capable of running in the [Golem provider image](https://handbook.golem.network/requestor-tutorials/convert-a-docker-image-into-a-golem-image).
+2. Send requests to the provider-based server using [httpx](https://www.python-httpx.org/)`.AsyncClient`, the same way
+   you would send them to any other http server. `httpx` is similar to more popular `requests`, but with async support.
+3. Restart the service on a new provider every time current agreement is terminated, in a seamless way that ensures no request is ever lost.
+4. Maintain multiple providers running the same server (efficient load balancing included).
+5. Change the number of providers running the server in a dynamic way.
+
+NOTE: features 3-5 are useful only if your server is stateless (i.e. request/response history never matters).
+
+This library is built on top of [yapapi](https://github.com/golemfactory/yapapi), there is nothing here that couldn't be done with the pure `yapapi`.
+
 ## Quickstart
 
 ```python
