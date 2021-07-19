@@ -1,4 +1,5 @@
 import asyncio
+from typing import TYPE_CHECKING
 from contextlib import asynccontextmanager
 
 import httpx
@@ -6,6 +7,10 @@ from yapapi_service_manager import ServiceManager
 
 from .serializable_request import Request
 from .cluster import Cluster
+
+if TYPE_CHECKING:
+    from typing import Dict, Callable, SupportsInt, Union, AsyncGenerator
+    from yapapi import WorkContext
 
 
 class YagnaTransport(httpx.AsyncBaseTransport):
@@ -25,25 +30,30 @@ class YagnaTransport(httpx.AsyncBaseTransport):
 
 
 class Session:
-    def __init__(self, executor_cfg):
+    def __init__(self, executor_cfg: dict):
         self.manager = ServiceManager(executor_cfg)
-        self.clusters = {}
+        self.clusters: 'Dict[str, Cluster]' = {}
 
-    def set_cluster_size(self, url, size):
+    def set_cluster_size(self, url: str, size: 'Union[int, Callable[[Cluster], SupportsInt]]'):
         self.clusters[url].set_size(size)
 
-    def startup(self, url, image_hash, init_size=1):
+    def startup(
+        self,
+        url: str,
+        image_hash: str,
+        init_size: 'Union[int, Callable[[Cluster], SupportsInt]]' = 1
+    ) -> 'Callable[[Callable[[WorkContext, str], None]], None]':
         if url in self.clusters:
             raise KeyError(f'Service for url {url} already exists')
 
-        def define_service(start_steps):
+        def define_service(start_steps: 'Callable[[WorkContext, str], None]') -> None:
             self.clusters[url] = Cluster(self.manager, image_hash, start_steps)
             self.set_cluster_size(url, init_size)
 
         return define_service
 
     @asynccontextmanager
-    async def client(self, *args, **kwargs):
+    async def client(self, *args, **kwargs) -> 'AsyncGenerator[httpx.AsyncClient, None]':
         self.start_new_services()
 
         mounts = kwargs.pop('mounts', {})
@@ -53,11 +63,11 @@ class Session:
         async with httpx.AsyncClient(*args, **kwargs) as client:
             yield client
 
-    def start_new_services(self):
+    def start_new_services(self) -> None:
         for cluster in self.clusters.values():
             cluster.start()
 
-    async def close(self):
+    async def close(self) -> None:
         for cluster in self.clusters.values():
             cluster.stop()
         await self.manager.close()

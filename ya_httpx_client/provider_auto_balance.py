@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from datetime import datetime
 if TYPE_CHECKING:
-    from ya_httpx_client.session import Cluster
+    from ya_httpx_client.cluster import Cluster
 
 
 class SimpleLoadBalancer:  # pylint: disable=too-few-public-methods
