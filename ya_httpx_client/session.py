@@ -127,7 +127,7 @@ class Session:
         self.manager = ServiceManager(executor_cfg)
         self.clusters = {}
 
-    def set_size(self, url, size):
+    def set_cluster_size(self, url, size):
         self.clusters[url].set_size(size)
 
     def startup(self, url, image_hash, init_size=1):
@@ -136,7 +136,7 @@ class Session:
 
         def define_service(start_steps):
             self.clusters[url] = Cluster(self.manager, image_hash, start_steps)
-            self.set_size(url, init_size)
+            self.set_cluster_size(url, init_size)
 
         return define_service
 

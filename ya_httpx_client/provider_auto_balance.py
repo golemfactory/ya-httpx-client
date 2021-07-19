@@ -22,7 +22,8 @@ class SimpleLoadBalancer:
 
     def __int__(self):
         '''
-        Recalculate desired number of providers each 10 seconds.
+        Returns the desirde number of providers.
+        To avoid too frequent changes we recalculate the number at most once in every 10 seconds.
         '''
         now = datetime.now()
         if self.cnt is None or (now - self.prev_queue_check_at).seconds > 10:

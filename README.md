@@ -1,5 +1,6 @@
 # ya-httpx-client
 
+Communicate with a provider-based http server the way you communicate with any other http server
 
 ## Quickstart
 
@@ -15,9 +16,9 @@ session = Session(executor_cfg)
     #   ...a service running on provider, in VM based on this image ...
     image_hash='25f09e17c34433f979331edf4f3b47b2ca330ba2f8acbfe2e3dbd9c3',
     #   ... and to be more exact, by one of indistinguishable services running on different providers.
-    #   This is the initial number of services that can be changed at any time by session.set_size().
+    #   This is the initial number of services that can be changed at any time by session.set_cluster_size().
     #   Also check "load balancing" section.
-    init_size=1
+    init_cluster_size=1
 )
 def calculator_startup(ctx, listen_on):
     #   Start the http server in the background (service will be operating only after this finished).
@@ -34,13 +35,13 @@ async def run():
     await session.close()
 
 #   4.  Optional: change the number of services. Check "load balancing" section for more details.
-session.set_size('http://any_name', 7)
+session.set_cluster_size('http://any_name', 7)
 ```
 
 ## Load balancing
 
-By default, a single instance of a service is created. We can change this by setting `init_size` in `@session.startup`
-to a different value, or by calling `session.set_size`. This value doesn't have to be an integer, it might also be a
+By default, a single instance of a service is created. We can change this by setting `init_cluster_size` in `@session.startup`
+to a different value, or by calling `session.set_cluster_size`. This value doesn't have to be an integer, it might also be a
 callable that takes a `ya_httpx_client.session.Cluster` object as an argument and returns an integer:
 
 ```python
@@ -49,7 +50,7 @@ def calculate_new_size(cluster):
         return 2
     else:
         return 1
-session.set_size('http://any_name', calculate_new_size)
+session.set_cluster_size('http://any_name', calculate_new_size)
 ```
 
 or even better, anything that could be evaluated as an integer:
@@ -63,11 +64,11 @@ class LoadBalancer:
         if self.cluster.request_queue.empty():
             return 0
         return 1
-session.set_size('http://any_name', LoadBalancer)
+session.set_cluster_size('http://any_name', LoadBalancer)
 ```
 
 If the last case, we have no control on how often `int(load_balancer_object)` will be called, so the implementation
 should be a little more clever, at least to avoid too frequent changes - check [SimpleLoadBalancer](ya_httpx_client/provider_auto_balance.py)
 for an example.
 
-NOTE: setting size to anything other than an integer this should be considered an experimental feature.
+NOTE: setting size to anything other than an integer should be considered an experimental feature.
