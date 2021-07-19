@@ -41,14 +41,14 @@ class Session:
         self,
         url: str,
         image_hash: str,
-        init_size: 'Union[int, Callable[[Cluster], SupportsInt]]' = 1
+        init_cluster_size: 'Union[int, Callable[[Cluster], SupportsInt]]' = 1
     ) -> 'Callable[[Callable[[WorkContext, str], None]], None]':
         if url in self.clusters:
             raise KeyError(f'Service for url {url} already exists')
 
         def define_service(start_steps: 'Callable[[WorkContext, str], None]') -> None:
             self.clusters[url] = Cluster(self.manager, image_hash, start_steps)
-            self.set_cluster_size(url, init_size)
+            self.set_cluster_size(url, init_cluster_size)
 
         return define_service
 
