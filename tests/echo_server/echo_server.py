@@ -6,8 +6,8 @@ app = Flask(__name__)
 
 
 @app.route('/', defaults={'path': ''}, methods=HTTP_METHODS)
-@app.route('/<path:path>', methods=HTTP_METHODS)
-def echo(path):  # pylint: disable=unused-argument
+@app.route('/<path:_path>', methods=HTTP_METHODS)
+def echo(_path):
     '''
     Whole request is returned (including headers etc) to simplify testing.
     Echo server has no non-testing purpose.
