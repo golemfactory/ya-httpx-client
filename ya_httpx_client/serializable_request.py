@@ -130,7 +130,6 @@ class Request:
         else:
             url = f'{scheme}://{host}:{port}{path}'
 
-        print("TYPE", type(stream))
         data = stream.read()
 
         return cls(method, url, data, headers)
