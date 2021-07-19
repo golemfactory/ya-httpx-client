@@ -13,5 +13,6 @@ RUN pip install .[provider]
 RUN rm -r *
 
 #   And this is calculator-related code (this part will be different in other examples). 
-RUN pip install Flask==2.0.1 gunicorn==20.1.0
+COPY examples/calculator/requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 COPY examples/calculator/calculator_server.py /golem/run/calculator_server.py
