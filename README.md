@@ -51,6 +51,7 @@ session = Session(executor_cfg)
 )
 def calculator_startup(ctx, listen_on):
     #   Start the HTTP server in the background (service will be operating only after this finished).
+    #   This command will be executed on the provider.
     ctx.run("sh", "-c", "start_my_http_server.sh")
 
 #   3.  Use the service(s)
