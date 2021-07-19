@@ -1,12 +1,16 @@
 import asyncio
 import uuid
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 import httpx
 from yapapi_service_manager import ServiceManager
 
 from .service_base import ServiceBase
 from .serializable_request import Request
+
+if TYPE_CHECKING:
+    from typing import Callable, Union, SupportsInt
 
 
 class Cluster:
@@ -17,31 +21,68 @@ class Cluster:
        should be merged into the same cluster-wrapper-thingy, but we can't do this without yapapi-side modifications.
        Currently I don't think `yapapi.Cluster` could be used instead of this one.
     '''
-    def __init__(self, manager, image_hash, start_steps, cnt):
+    def __init__(self, manager: ServiceManager, image_hash: str, start_steps):
         self.manager = manager
         self.image_hash = image_hash
         self.start_steps = start_steps
-        self.cnt = cnt
 
-        self.request_queue = asyncio.Queue()
-        self.cls = self._create_cls()
+        #   This is how many services we want to have running. It is set here to 0, but curretly
+        #   every Cluster initialization is followed by a call to set_size, so this doesn't really matter.
+        self.expected_cnt: 'Union[int, SupportsInt]' = 0
 
+        #   Task that starts new services will be stored here (created later, because now we might not
+        #   have a loop running yet)
+        self.new_services_starter_task = None
+
+        #   Each task in this lists corresponds to a single instance of yapapi_service_manager.ServiceWrapper
+        #   (and thus to a single instance of a running service, assuming it already started)
         self.manager_tasks = []
 
+        #   This queue is filled by YagnaTransport and emptied by Service instances
+        self.request_queue = asyncio.Queue()
+
+        #   This is a workaround for a missing yapapi feature
+        self.cls = self._create_cls()
+
+    @property
+    def cnt(self):
+        current_manager_tasks = [task for task in self.manager_tasks if not task.done()]
+        return len(current_manager_tasks)
+
     def start(self):
-        current_cnt = len(self.manager_tasks)
-        self.manager_tasks += [asyncio.create_task(self._manage()) for _ in range(current_cnt, self.cnt)]
+        if self.new_services_starter_task is None:
+            self.new_services_starter_task = asyncio.create_task(self._start_new_services())
 
     def stop(self):
         for task in self.manager_tasks:
             task.cancel()
+        if self.new_services_starter_task is not None:
+            self.new_services_starter_task.cancel()
 
-    async def _manage(self):
+    def set_size(self, size: 'Union[int, Callable[[Cluster], SupportsInt]]'):
+        if isinstance(size, int):
+            self.expected_cnt = size
+        else:
+            self.expected_cnt = size(self)
+
+    async def _start_new_services(self):
+        while True:
+            expected_cnt = int(self.expected_cnt)
+            new_tasks = [asyncio.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
+            self.manager_tasks += new_tasks
+            await asyncio.sleep(1)
+
+    async def _manage_single_service(self):
         service_wrapper = None
 
         while True:
             if service_wrapper is None:
                 service_wrapper = self.manager.create_service(self.cls)
+
+            if int(self.expected_cnt) < self.cnt:
+                #   There are too many services running, (at least) one has to stop
+                service_wrapper.stop()
+                break
 
             await asyncio.sleep(1)
 
@@ -62,7 +103,7 @@ class Cluster:
         #   NOTE: this is ugly, but we're waiting for https://github.com/golemfactory/yapapi/issues/372
         class_name = 'Service_' + uuid.uuid4().hex
 
-        #   NOTE: 'yhc' is from `yapapi-httpx-client', but I hope this will be removed before we release this
+        #   NOTE: 'yhc' is from `ya-httpx-client'
         return type(class_name, (ServiceBase,), {'_yhc_cluster': self})
 
 
@@ -86,12 +127,16 @@ class Session:
         self.manager = ServiceManager(executor_cfg)
         self.clusters = {}
 
-    def startup(self, url, image_hash, service_cnt=1):
+    def set_cluster_size(self, url, size):
+        self.clusters[url].set_size(size)
+
+    def startup(self, url, image_hash, init_size=1):
         if url in self.clusters:
             raise KeyError(f'Service for url {url} already exists')
 
         def define_service(start_steps):
-            self.clusters[url] = Cluster(self.manager, image_hash, start_steps, service_cnt)
+            self.clusters[url] = Cluster(self.manager, image_hash, start_steps)
+            self.set_cluster_size(url, init_size)
 
         return define_service
 
