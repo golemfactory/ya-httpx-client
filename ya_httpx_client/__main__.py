@@ -1,6 +1,6 @@
 import click
 from ya_httpx_client.serializable_request import Request, Response
-import requests_unixsocket
+import requests_unixsocket  # type: ignore
 
 
 @click.command()

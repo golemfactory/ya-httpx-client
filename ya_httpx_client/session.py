@@ -10,7 +10,7 @@ from .service_base import ServiceBase
 from .serializable_request import Request
 
 if TYPE_CHECKING:
-    from typing import Callable, Union, SupportsInt
+    from typing import Callable, Union, SupportsInt, List
 
 
 class Cluster:
@@ -36,10 +36,10 @@ class Cluster:
 
         #   Each task in this lists corresponds to a single instance of yapapi_service_manager.ServiceWrapper
         #   (and thus to a single instance of a running service, assuming it already started)
-        self.manager_tasks = []
+        self.manager_tasks: 'List[asyncio.Task]' = []
 
         #   This queue is filled by YagnaTransport and emptied by Service instances
-        self.request_queue = asyncio.Queue()
+        self.request_queue: asyncio.Queue = asyncio.Queue()
 
         #   This is a workaround for a missing yapapi feature
         self.cls = self._create_cls()
