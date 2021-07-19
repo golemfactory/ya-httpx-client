@@ -12,4 +12,4 @@ disable=missing-docstring,
 [FORMAT]
 
 max-line-length=120
-good-names=i,e,id,f
+good-names=i,e,id,f,x,y
