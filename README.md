@@ -9,7 +9,7 @@ development of [yapapi-based services](https://handbook.golem.network/requestor-
 
 Features:
 
-1. Deploy a HTTP server on a Golem provider in an easy way. There are no requirements on the server implementation
+1. Deploy an HTTP server on a Golem provider in an easy way. There are no requirements on the server implementation
    (doesn't even have to be in `python`) except it must be capable of running in the 
    [Golem provider image](https://handbook.golem.network/requestor-tutorials/convert-a-docker-image-into-a-golem-image).
 2. Send requests to the provider-based server using [httpx.AsyncClient](https://www.python-httpx.org/async/), the same way
@@ -106,11 +106,11 @@ NOTE: setting size to anything other than an integer should be considered an exp
 
 ## Future development
 
-1. Additional example: `requestor-proxy` - a HTTP server running on **requestor** that serves as a proxy to server(s) running on the provider(s).
-2. Currently when the service stops it is restarted on another provider. This makes sense only for stateless services, but there is no way to turn this off.
+1. Additional example: `requestor-proxy` - am HTTP server running on **requestor** that serves as a proxy to server(s) running on the provider(s).
+2. Currently, when the service stops, it is restarted on another provider. This makes sense only for stateless services, but there is no way to turn this off.
    The developer should decide if they want to restart the service or not (or maybe stop the execution?).
 
 ## Known issues
 
 1. Communication with providers is quite slow (1-2s for each request). This will be fixed when the new communication options are implemented in [yagna](https://github.com/golemfactory/yagna)
-   (hopefully in the next release).
+   (hopefully in the next major release).
