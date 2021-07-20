@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from ya_httpx_client.cluster import Cluster
 
 
-class SimpleLoadBalancer:  # pylint: disable=too-few-public-methods
+class SimpleLoadBalancer:
     '''
     NOTE: this implementation is only an example how such things should be done.
 

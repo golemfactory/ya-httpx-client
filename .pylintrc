@@ -13,3 +13,7 @@ disable=missing-docstring,
 
 max-line-length=120
 good-names=i,e,id,f,x,y
+
+[DESIGN]
+max-attributes=12
+min-public-methods=0

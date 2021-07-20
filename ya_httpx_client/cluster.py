@@ -11,13 +11,12 @@ if TYPE_CHECKING:
 
 
 class Cluster:
-    # pylint: disable=too-many-instance-attributes
     '''
     Q: Here is a Cluster class, and we have a `yapapi.Cluster`. Both seem to wrap a bunch of services.
        Do we need two separate clusters for this?
     A: In the future, this Cluster and `yapapi.Cluster` and also `yapapi_service_manager.ServiceWrapper`
        should be merged into the same cluster-wrapper-thingy, but we can't do this without yapapi-side modifications.
-       Currently I don't think the instance of `yapapi.Cluster` class could be used instead of this one.
+       Currently I don't think an instance of `yapapi.Cluster` class could be used instead of this one.
     '''
     def __init__(self, manager: 'ServiceManager', image_hash: str, start_steps: 'Callable[[WorkContext, str], None]'):
         self.manager = manager
