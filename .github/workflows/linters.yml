@@ -1,0 +1,43 @@
+name: Python linters
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linters:
+    name: Run Python linters
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+        os:
+          - ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[requestor]
+          pip install -e .[provider]
+          pip install -r examples/calculator/requirements.txt
+          pip install pytest==6.2.4
+          pip install mypy==0.* pylint==2.*
+          # this is an in-function import in ya-httpx-client/serializable_request.py
+          # (not in any requirements because this function only makes sense if Quart is already used)
+          pip install Quart==0.15.1
+      - name: Run mypy
+        run: mypy --install-types --non-interactive .
+      - name: Run pylint
+        run: find . -type f -name "*.py" | xargs pylint

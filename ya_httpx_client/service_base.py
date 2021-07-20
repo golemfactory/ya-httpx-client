@@ -12,17 +12,17 @@ class ServiceBase(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.queue = self._yhc_cluster.request_queue
+        self.queue = self._yhc_cluster.request_queue  # pylint: disable=no-member
 
         self.current_req, self.current_fut = None, None
 
     @classmethod
     async def get_payload(cls):
-        image_hash = cls._yhc_cluster.image_hash
+        image_hash = cls._yhc_cluster.image_hash  # pylint: disable=no-member
         return await vm.repo(image_hash=image_hash)
 
     async def start(self):
-        start_steps = self._yhc_cluster.start_steps
+        start_steps = self._yhc_cluster.start_steps  # pylint: disable=no-member
         start_steps(self._ctx, PROVIDER_URL)
         yield self._ctx.commit()
         print(f"STARTED ON {self.provider_name}")
@@ -41,6 +41,6 @@ class ServiceBase(Service):
                 res = Response.from_file(out_file.name)
                 fut.set_result(res)
 
-    def restart_failed_request(self):
+    def restart_failed_request(self) -> None:
         if self.current_fut is not None and not self.current_fut.done():
             self.queue.put_nowait((self.current_req, self.current_fut))

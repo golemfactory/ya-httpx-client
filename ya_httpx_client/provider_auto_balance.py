@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from datetime import datetime
 if TYPE_CHECKING:
-    from ya_httpx_client.session import Cluster
+    from ya_httpx_client.cluster import Cluster
 
 
 class SimpleLoadBalancer:
@@ -36,7 +36,7 @@ class SimpleLoadBalancer:
         current_cnt = self.cnt
         current_queue_size = self.cluster.request_queue.qsize()
 
-        if current_cnt is None:
+        if current_cnt is None:  # pylint: disable=no-else-return
             #   Initial value
             return 3
         elif not current_queue_size and not self.prev_queue_size:

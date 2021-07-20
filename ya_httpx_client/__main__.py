@@ -1,13 +1,14 @@
 import click
+import requests_unixsocket  # type: ignore
+
 from ya_httpx_client.serializable_request import Request, Response
-import requests_unixsocket
 
 
 @click.command()
 @click.option('--url', required=True)
 @click.argument('request_path')
 @click.argument('response_path')
-def process_request(url, request_path, response_path):
+def process_request(url: str, request_path: str, response_path: str) -> None:
     url = _adjust_url(url)
 
     req = Request.from_file(request_path)
@@ -24,11 +25,11 @@ def process_request(url, request_path, response_path):
     print(f"OUT: {response_path}")
 
 
-def _adjust_url(url):
+def _adjust_url(url: str) -> str:
     '''
     Only current usecase:
         unix:///tmp/golem.sock/  --> http+unix://%2Ftmp%2Fgolem.sock
-        
+
     NOTE: urllib.parse is not used, because it doesn't work well with urls with empty host,
           e.g. with the one above
     '''
@@ -54,4 +55,4 @@ def _adjust_url(url):
 
 
 if __name__ == '__main__':
-    process_request()
+    process_request()  # pylint: disable=no-value-for-parameter
