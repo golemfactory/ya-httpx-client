@@ -43,6 +43,10 @@ class Response:
     def from_requests_response(cls, res: 'requests.Response') -> 'Response':
         return cls(res.status_code, res.content, dict(res.headers))
 
+    @classmethod
+    def from_httpx_response(cls, res: 'httpx.Response') -> 'Response':
+        return cls(res.status_code, res.content, dict(res.headers))
+
     def to_file(self, fname: str) -> None:
         with open(fname, 'w') as f:
             f.write(self.as_json())
@@ -59,6 +63,9 @@ class Response:
 
     def as_flask_response(self) -> 'Tuple[str, int, Dict[str, str]]':
         return self.data.decode('utf-8'), self.status, self.headers
+
+    def as_quart_response(self) -> 'Tuple[str, int, Dict[str, str]]':
+        return self.as_flask_response()
 
 
 class Request:
@@ -92,7 +99,7 @@ class Request:
         from quart import request  # pylint: disable=import-outside-toplevel
 
         data = await request.get_data()
-        return cls(request.method, request.url, data.encode('utf-8'), dict(request.headers))
+        return cls(request.method, request.url, data, dict(request.headers))
 
     @classmethod
     def from_file(cls, fname: str) -> 'Request':
@@ -171,6 +178,16 @@ class Request:
             method=self.method,
             url=self.url,
             data=self.data,
+            headers=self.headers,
+        )
+        return req
+
+    def as_httpx_request(self) -> 'httpx.Request':
+        import httpx
+        req = httpx.Request(
+            method=self.method,
+            url=self.url,
+            content=self.data,
             headers=self.headers,
         )
         return req
