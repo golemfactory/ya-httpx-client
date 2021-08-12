@@ -99,6 +99,7 @@ class Request:
         from quart import request  # pylint: disable=import-outside-toplevel
 
         data = await request.get_data()
+        assert isinstance(data, bytes)  # this is a message for mypy because of some mess in quart annotations
         return cls(request.method, request.url, data, dict(request.headers))
 
     @classmethod
@@ -183,7 +184,7 @@ class Request:
         return req
 
     def as_httpx_request(self) -> 'httpx.Request':
-        import httpx
+        import httpx  # pylint: disable=import-outside-toplevel
         req = httpx.Request(
             method=self.method,
             url=self.url,

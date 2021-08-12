@@ -7,7 +7,7 @@ from ya_httpx_client.session import Session
 HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
 PROVIDER_URL = 'http://calc'
 IMAGE_HASH = '1f43e06ecc4ef40084efcf57131aa6056c57b5732bef2bcb6a8cdad2'
-INIT_CLUSTER_SIZE = 5
+INIT_CLUSTER_SIZE = 1
 
 executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
 
@@ -47,8 +47,8 @@ async def forward_request():
 
 
 @app.route('/', defaults={'path': ''}, methods=HTTP_METHODS)
-@app.route('/<path:path>', methods=HTTP_METHODS)
-async def catch_all(path):
+@app.route('/<path:_path>', methods=HTTP_METHODS)
+async def catch_all(_path):
     res = await forward_request()
     return res
 
