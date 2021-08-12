@@ -24,7 +24,9 @@ This library is built on top of [yapapi](https://github.com/golemfactory/yapapi)
 
 ## Installation
 
-$ pip3 install git+https://github.com/golemfactory/ya-httpx-client.git#egg=ya-httpx-client[requestor]
+```bash
+pip3 install git+https://github.com/golemfactory/ya-httpx-client.git#egg=ya-httpx-client[requestor]
+```
 
 ## How to
 
@@ -62,12 +64,12 @@ pip3 install -r examples/requestor_proxy/requirements.txt
 # Start the server
 python3 examples/requestor_proxy/requestor_proxy.py
 
-# (other console) use the server
+# (other console) use the "local" server
 curl http://localhost:5000/add/3/4
 
 ```
 
-For details on the configuration, check comments in the code.
+For the details on the configuration, check comments in the code.
 
 ### Requestor agent quickstart
 
