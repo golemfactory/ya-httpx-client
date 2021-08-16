@@ -22,6 +22,12 @@ NOTE: features 3-5 are useful only if your server is stateless (i.e. request/res
 
 This library is built on top of [yapapi](https://github.com/golemfactory/yapapi), there is nothing here that couldn't be done with the pure `yapapi`.
 
+## Installation
+
+```bash
+pip3 install git+https://github.com/golemfactory/ya-httpx-client.git#egg=ya-httpx-client[requestor]
+```
+
 ## How to
 
 Every `ya-httpx-client` application is made up of 3 main components:
@@ -29,7 +35,41 @@ Every `ya-httpx-client` application is made up of 3 main components:
 * `Dockerfile` that will serve as a base for the Golem provider image
 * Requestor agent that initializes `ya-httpx-client.Session`, starts server(s) on provider(s), and uses them
 
-For a simple complete application check the [calculator example](examples/calculator).
+### Examples
+
+#### Calculator
+
+There is a simple complete application [here](examples/calculator). It consists of:
+* `calculator_server.py` - a Flask-based http server that answers to requests like `GET base_url/add/7/8`
+* `calculator.Dockerfile` - base of a Golem provider image that includes `calculator_server.py`
+* `run_calculator.py` - requestor agent that starts the calculator on provider and sends some requests
+
+Usage: `python3 examples/calculator/run_calculator.py`
+
+#### Requestor proxy
+
+[Second example](examples/requestor_proxy) is a generic HTTP server running on the **requestor** side that:
+* On startup starts a http server on provider(s). There are no assumptions about this server, in our example it is just the calculator from the previous example.
+* Accepts *any* request
+* Forwards every request to the provider and responds with the response received
+
+So, in other words, requestor serves as a proxy to the server running on a provider.
+
+Usage:
+
+```bash
+# Install additonal requestor-side dependencies (Quart)
+pip3 install -r examples/requestor_proxy/requirements.txt
+
+# Start the server
+python3 examples/requestor_proxy/requestor_proxy.py
+
+# (other console) use the "local" server
+curl http://localhost:5000/add/3/4
+
+```
+
+For the details on the configuration, check comments in the code.
 
 ### Requestor agent quickstart
 
