@@ -52,6 +52,9 @@ class Session:
 
         return define_service
 
+    def add_startup(self, start_steps: 'Callable[[WorkContext, str], None]', *args, **kwargs) -> None:
+        self.startup(*args, **kwargs)(start_steps)
+
     @asynccontextmanager
     async def client(self, *args, **kwargs) -> 'AsyncGenerator[httpx.AsyncClient, None]':
         self.start_new_services()

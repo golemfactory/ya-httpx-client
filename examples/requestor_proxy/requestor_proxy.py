@@ -30,11 +30,12 @@ async def init_session():
           because we need everything to run in the same loop
     '''
     session = Session(EXECUTOR_CFG)
-    session.startup(
+    session.add_startup(
+        startup,
         url=PROVIDER_URL,
         image_hash=IMAGE_HASH,
         init_cluster_size=INIT_CLUSTER_SIZE,
-    )(startup)
+    )
     return session
 
 
