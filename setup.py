@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 requestor_requirements = [
     "httpx==0.18.2",
-    "yapapi-service-manager @ git+https://github.com/golemfactory/yapapi-service-manager.git",
+    "yapapi-service-manager @ git+https://github.com/golemfactory/yapapi-service-manager.git@latest-yapapi",
 ]
 provider_requirements = [
     "requests==2.25.1",
