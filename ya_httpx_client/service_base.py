@@ -22,6 +22,8 @@ class ServiceBase(Service):
         return await vm.repo(image_hash=image_hash)
 
     async def start(self):
+        async for script in super().start():
+            yield script
         start_steps = self._yhc_cluster.start_steps  # pylint: disable=no-member
         start_steps(self._ctx, PROVIDER_URL)
         yield self._ctx.commit()
