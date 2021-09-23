@@ -30,6 +30,7 @@ class ServiceBase(Service):
         print(f"STARTED ON {self.provider_name}")
 
     async def run(self):
+        print("MY NETWORK", self.network)
         while True:
             req, fut = self.current_req, self.current_fut = await self.queue.get()
             print(f"processing {req.url} on {self.provider_name}")

@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from typing import Callable, Union, SupportsInt, List, Type, Optional
     from yapapi_service_manager import ServiceManager
     from yapapi import WorkContext
+    from yapapi.network import Network
 
 
 class Cluster:
@@ -22,6 +23,9 @@ class Cluster:
         self.manager = manager
         self.image_hash = image_hash
         self.start_steps = start_steps
+
+        #   VPN network all instances in this cluster will be attached to
+        self.network: Optional['Network'] = None
 
         #   This queue is filled by YagnaTransport and emptied by Service instances
         self.request_queue: asyncio.Queue = asyncio.Queue()
@@ -63,18 +67,24 @@ class Cluster:
             self.expected_cnt = size(self)
 
     async def _start_new_services(self) -> None:
+        self.network = await self._create_network()
         while True:
             expected_cnt = int(self.expected_cnt)
             new_tasks = [asyncio.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
             self._manager_tasks += new_tasks
             await asyncio.sleep(1)
 
+    async def _create_network(self) -> 'Network':
+        #   TODO: generate IPs? Now this will fail for more than one cluster?
+        ip = "192.168.0.1/24"
+        return await self.manager.create_network(ip)
+
     async def _manage_single_service(self) -> None:
         service_wrapper = None
 
         while True:
             if service_wrapper is None:
-                service_wrapper = self.manager.create_service(self._cls)
+                service_wrapper = self.manager.create_service(self._cls, network=self.network)
 
             if int(self.expected_cnt) < self.cnt:
                 #   There are too many services running, (at least) one has to stop
