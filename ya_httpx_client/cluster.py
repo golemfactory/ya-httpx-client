@@ -76,6 +76,8 @@ class Cluster:
 
     async def _create_network(self) -> 'Network':
         #   TODO: generate IPs? Now this will fail for more than one cluster?
+        #   Possible solution: make the Network a class attribute, lazy created.
+        #   Everything will work in the same network.
         ip = "192.168.0.1/24"
         return await self.manager.create_network(ip)
 
