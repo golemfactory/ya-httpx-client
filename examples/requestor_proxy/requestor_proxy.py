@@ -20,7 +20,7 @@ INIT_CLUSTER_SIZE = 1
 
 #   Golem configuration - this will be passed directly to the Golem object
 #   https://handbook.golem.network/yapapi/api-reference#golem-objects
-EXECUTOR_CFG = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
+EXECUTOR_CFG = {'budget': 10, 'subnet_tag': 'devnet-beta'}
 
 
 async def init_session():

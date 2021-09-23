@@ -38,7 +38,7 @@ from .sample_requests import sample_requests, BASE_URL
 
 EXECUTOR_CFG = {
     'budget': 1,
-    'subnet_tag': 'devnet-beta.2',
+    'subnet_tag': 'devnet-beta',
 }
 
 STARTUP_CFG = {
