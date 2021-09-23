@@ -1,4 +1,5 @@
 from tempfile import NamedTemporaryFile
+from typing import TYPE_CHECKING
 
 import aiohttp
 
@@ -8,7 +9,24 @@ import shlex
 
 from .serializable_request import Response
 
+if TYPE_CHECKING:
+    from yapapi.script import Script
+
 PROVIDER_URL = 'unix:///tmp/golem.sock'
+
+USE_VPN = True
+
+
+def _simple_proxy_start_steps(ctx, url):
+    ctx.run("/docker-entrypoint.sh")
+    ctx.run("/bin/chmod", "a+x", "/")
+    msg = "Hello from inside Golem!"
+    ctx.run(
+        "/bin/sh",
+        "-c",
+        f"echo {shlex.quote(msg)} > /usr/share/nginx/html/index.html",
+    )
+    ctx.run("/usr/sbin/nginx")
 
 
 class ServiceBase(Service):
@@ -28,41 +46,35 @@ class ServiceBase(Service):
         async for script in super().start():
             yield script
         # start_steps = self._yhc_cluster.start_steps  # pylint: disable=no-member
-        # start_steps(self._ctx, PROVIDER_URL)
-        # yield self._ctx.commit()
-        s = self._ctx.new_script()
-        s.run("/docker-entrypoint.sh")
-        s.run("/bin/chmod", "a+x", "/")
-        msg = f"Hello from inside Golem!\n... running on {self.provider_name}"
-        s.run(
-            "/bin/sh",
-            "-c",
-            f"echo {shlex.quote(msg)} > /usr/share/nginx/html/index.html",
-        )
-        s.run("/usr/sbin/nginx"),
-        yield s
+        start_steps = _simple_proxy_start_steps
+        start_steps(self._ctx, PROVIDER_URL)
+        yield self._ctx.commit()
         print(f"STARTED ON {self.provider_name}")
 
     async def run(self):
-        print("MY NETWORK", self.network)
         while True:
             req, fut = self.current_req, self.current_fut = await self.queue.get()
-            res_str = await self.handle_request('/')
-            res = Response(200, res_str.encode(), {})
+            print(f"processing {req.url} on {self.provider_name} VPN: {USE_VPN}")
+            if USE_VPN:
+                res = await self._handle_request_via_vpn(req)
+            else:
+                with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
+                    yield self._handle_request_via_files_script(req, in_file.name, out_file.name)
+                    res = Response.from_file(out_file.name)
             fut.set_result(res)
-            # print(f"processing {req.url} on {self.provider_name}")
-            # with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
-            #     req.to_file(in_file.name)
-            #     self._ctx.send_file(in_file.name, '/golem/work/req.json')
-            #     self._ctx.run('/bin/sh', '-c', f'python -m ya_httpx_client --url {PROVIDER_URL} req.json res.json')
-            #     self._ctx.download_file('/golem/work/res.json', out_file.name)
-            #     yield self._ctx.commit()
 
-            #     res = Response.from_file(out_file.name)
-            #     fut.set_result(res)
+    def _handle_request_via_files_script(self, req, in_fname, out_fname) -> 'Script':
+        req.to_file(in_fname)
+        script = self._ctx.new_script()
+        script.upload_file(in_fname, '/golem/work/req.json')
+        script.run('/bin/sh', '-c', f'python -m ya_httpx_client --url {PROVIDER_URL} req.json res.json')
+        script.download_file('/golem/work/res.json', out_fname)
+        return script
 
-        #   We never get here, so nothing is yielded, but run is required to be a generator
-        yield
+    async def _handle_request_via_vpn(self, req):
+        res_str = await self.handle_request('/')
+        res = Response(200, res_str.encode(), {})
+        return res
 
     def restart_failed_request(self) -> None:
         if self.current_fut is not None and not self.current_fut.done():
