@@ -75,7 +75,7 @@ For the details on the configuration, check comments in the code.
 
 ```python
 #   1.  Initialize the session with yapapi.Golem configuration. This should be done exactly once. 
-executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta'}
+executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
 session = Session(executor_cfg)
 
 #   2.  Define a service. You may define as many services as you want, provided they have different urls.
