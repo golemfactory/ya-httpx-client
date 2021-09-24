@@ -91,7 +91,12 @@ class Cluster:
 
         while True:
             if service_wrapper is None:
-                service_wrapper = self.manager.create_service(self._cls, network=self.network)
+                service_wrapper = self.manager.create_service(
+                    self._cls,
+                    run_service_params={
+                        'network': self.network,
+                    },
+                )
 
             if int(self.expected_cnt) < self.cnt:
                 #   There are too many services running, (at least) one has to stop
