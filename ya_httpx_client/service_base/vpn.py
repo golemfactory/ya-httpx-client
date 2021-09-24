@@ -1,10 +1,12 @@
 import aiohttp
+from yapapi.payload import vm
 
 from .service_base import AbstractServiceBase
 from ..serializable_request import Response
 
 
 class VPNServiceBase(AbstractServiceBase):
+    REQUIRED_CAPABILITIES = [vm.VM_CAPS_VPN]
     PROVIDER_URL = '0.0.0.0:80'
 
     async def run(self):

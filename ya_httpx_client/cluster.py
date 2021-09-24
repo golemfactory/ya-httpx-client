@@ -1,6 +1,7 @@
 import asyncio
-import uuid
 from typing import TYPE_CHECKING
+
+from yapapi.payload import vm
 
 from . import service_base
 
@@ -47,9 +48,6 @@ class Cluster:
         #   (and thus to a single instance of a running service, assuming it already started and didn't stop)
         self._manager_tasks: 'List[asyncio.Task]' = []
 
-        #   This is a workaround for a missing yapapi feature
-        self._cls = self._create_cls()
-
     @property
     def cnt(self) -> int:
         current_manager_tasks = [task for task in self._manager_tasks if not task.done()]
@@ -91,12 +89,7 @@ class Cluster:
 
         while True:
             if service_wrapper is None:
-                service_wrapper = self.manager.create_service(
-                    self._cls,
-                    run_service_params={
-                        'network': self.network,
-                    },
-                )
+                service_wrapper = await self._create_service_wrapper()
 
             if int(self.expected_cnt) < self.cnt:
                 #   There are too many services running, (at least) one has to stop
@@ -118,14 +111,23 @@ class Cluster:
                 #         use this distinction). Think again if this is harmless.
                 service_wrapper = None
 
-    def _create_cls(self):
-        #   NOTE: this is ugly, but we're waiting for https://github.com/golemfactory/yapapi/issues/372
-        class_name = 'Service_' + uuid.uuid4().hex
+    async def _create_service_wrapper(self):
+        capabilities = self._cls.REQUIRED_CAPABILITIES
+        payload = await vm.repo(image_hash=self.image_hash, capabilities=capabilities)
+        return self.manager.create_service(
+            self._cls,
+            run_service_params={
+                'payload': payload,
+                'network': self.network,
+                'instance_params': [{
+                    'start_steps': self.start_steps,
+                    'request_queue': self.request_queue,
+                }],
+            },
+        )
 
-        #   NOTE: 'yhc' is from `ya-httpx-client'
-        return type(class_name, (self._base_cls(),), {'_yhc_cluster': self})
-
-    def _base_cls(self):
+    @property
+    def _cls(self):
         if self.USE_VPN:
             return service_base.VPNServiceBase
         else:

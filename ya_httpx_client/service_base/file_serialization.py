@@ -5,6 +5,7 @@ from ..serializable_request import Response
 
 
 class FileSerializationServiceBase(AbstractServiceBase):
+    REQUIRED_CAPABILITIES = []
     PROVIDER_URL = 'unix:///tmp/golem.sock'
 
     async def run(self):
