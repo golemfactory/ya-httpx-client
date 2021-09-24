@@ -117,6 +117,8 @@ async def main(subnet_tag, payment_driver=None, payment_network=None, show_usage
         payment_network=payment_network,
     ) as golem:
 
+        assert False
+
         print(
             f"yapapi version: {TEXT_COLOR_YELLOW}{yapapi_version}{TEXT_COLOR_DEFAULT}\n"
             f"Using subnet: {TEXT_COLOR_YELLOW}{subnet_tag}{TEXT_COLOR_DEFAULT}, "
