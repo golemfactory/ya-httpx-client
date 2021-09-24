@@ -13,11 +13,11 @@ from .assertions import assert_no_errors
 
 import requests
 
-logger = logging.getLogger("goth.test.run_echo_server")
+logger = logging.getLogger("goth.test.run_proxy")
 
 
 @pytest.mark.asyncio
-async def test_run_echo_server(
+async def test_run_requestor_proxy(
     project_dir: Path, log_dir: Path, goth_config_path: Path
 ) -> None:
     goth_config = load_yaml(goth_config_path)
