@@ -55,22 +55,19 @@ async def requestor_proxy(
             cmd_task.cancel()
 
 
-@pytest.mark.asyncio
-async def test_1(requestor_proxy):
+def test_1(requestor_proxy):
     res = requests.get('http://localhost:5000/add/1/2')
     assert res.status_code == 200
     assert res.text == '3'
 
 
-@pytest.mark.asyncio
-async def test_2(requestor_proxy):
+def test_2(requestor_proxy):
     res = requests.get('http://localhost:5000/add/1/2')
     assert res.status_code == 200
     assert res.text == '4'
 
 
-@pytest.mark.asyncio
-async def test_3(requestor_proxy):
+def test_3(requestor_proxy):
     res = requests.get('http://localhost:5000/add/1/2')
     assert res.status_code == 200
     assert res.text == '3'
