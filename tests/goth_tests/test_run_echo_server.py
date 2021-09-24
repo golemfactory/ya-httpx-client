@@ -18,9 +18,9 @@ logger = logging.getLogger("goth.test.run_echo_server")
 
 @pytest.mark.asyncio
 async def test_run_echo_server(
-    project_dir: Path, log_dir: Path, goth_config_path: Path, config_overrides: List[Override]
+    project_dir: Path, log_dir: Path, goth_config_path: Path
 ) -> None:
-    goth_config = load_yaml(goth_config_path, config_overrides)
+    goth_config = load_yaml(goth_config_path)
     requestor_script_path = project_dir / "tests" / "goth_tests" / "requestor_echo_server.py"
     configure_logging(log_dir)
     runner = Runner(
