@@ -12,9 +12,9 @@ from .serializable_request import Response
 if TYPE_CHECKING:
     from yapapi.script import Script
 
-PROVIDER_URL = 'unix:///tmp/golem.sock'
+PROVIDER_URL = '0.0.0.0:80'
 
-USE_VPN = True
+USE_VPN = False
 
 
 def _simple_proxy_start_steps(ctx, url):
@@ -45,8 +45,8 @@ class ServiceBase(Service):
     async def start(self):
         async for script in super().start():
             yield script
-        # start_steps = self._yhc_cluster.start_steps  # pylint: disable=no-member
-        start_steps = _simple_proxy_start_steps
+        start_steps = self._yhc_cluster.start_steps  # pylint: disable=no-member
+        # start_steps = _simple_proxy_start_steps
         start_steps(self._ctx, PROVIDER_URL)
         yield self._ctx.commit()
         print(f"STARTED ON {self.provider_name}")
@@ -58,10 +58,12 @@ class ServiceBase(Service):
             if USE_VPN:
                 res = await self._handle_request_via_vpn(req)
             else:
-                with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
-                    yield self._handle_request_via_files_script(req, in_file.name, out_file.name)
-                    res = Response.from_file(out_file.name)
+                res = await self._handle_request_via_vpn(req)
+                # with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
+                #     yield self._handle_request_via_files_script(req, in_file.name, out_file.name)
+                #     res = Response.from_file(out_file.name)
             fut.set_result(res)
+        yield
 
     def _handle_request_via_files_script(self, req, in_fname, out_fname) -> 'Script':
         req.to_file(in_fname)
@@ -92,7 +94,7 @@ class ServiceBase(Service):
         async with ws_session.ws_connect(
             instance_ws, headers={"Authorization": f"Bearer {app_key}"}
         ) as ws:
-            await ws.send_str(f"GET {query_string} HTTP/1.0\n\n")
+            await ws.send_str("GET / HTTP/1.0\r\n\r\n")
             headers = await ws.__anext__()
             content = await ws.__anext__()
             data: bytes = content.data
