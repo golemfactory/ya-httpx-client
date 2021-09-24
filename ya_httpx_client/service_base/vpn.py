@@ -10,6 +10,10 @@ class VPNServiceBase(AbstractServiceBase):
     PROVIDER_URL = '0.0.0.0:80'
 
     async def run(self):
+        self.instance_ws = self.network_node.get_websocket_uri(80)
+        app_key = self.cluster._engine._api_config.app_key
+        self.headers = {"Authorization": f"Bearer {app_key}"}
+
         while True:
             req, fut = self.current_req, self.current_fut = await self.queue.get()
             print(f"processing {req.url} on {self.provider_name}")
@@ -20,25 +24,12 @@ class VPNServiceBase(AbstractServiceBase):
         yield
 
     async def _handle_request(self, req):
-        query_string = req.path
-
-        instance_ws = self.network_node.get_websocket_uri(80)
-        app_key = self.cluster._engine._api_config.app_key
-
         ws_session = aiohttp.ClientSession()
-        async with ws_session.ws_connect(
-            instance_ws, headers={"Authorization": f"Bearer {app_key}"}
-        ) as ws:
-            print("GET ", query_string)
-            await ws.send_str(f"GET {query_string} HTTP/1.0\r\n\r\n")
+        async with ws_session.ws_connect(self.instance_ws, headers=self.headers) as ws:
+            await ws.send_str(req.as_raw_request_str())
             headers = await ws.__anext__()
-            print("HEADERS", headers)
             content = await ws.__anext__()
-            data: bytes = content.data
-
-            response_text = data.decode("utf-8")
-
         await ws_session.close()
-
-        res = Response(200, response_text.encode(), {})
+        
+        res = Response.from_headers_and_content(headers, content)
         return res

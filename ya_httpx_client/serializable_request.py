@@ -26,6 +26,10 @@ class Response:
         self.headers = headers
 
     @classmethod
+    def from_headers_and_content(cls, headers: str, content: str) -> 'Response':
+        return Response(200, content.data, {})
+
+    @classmethod
     def from_file(cls, fname: str) -> 'Response':
         with open(fname, 'r') as f:
             return cls.from_json(f.read())
@@ -174,6 +178,9 @@ class Request:
             'data': self.data.decode('utf-8'),
             'headers': self.headers,
         }
+
+    def as_raw_request_str(self) -> str:
+        return f"{self.method.upper()} {self.path} HTTP/1.0\r\n\r\n"
 
     def as_requests_request(self) -> 'requests.Request':
         #   Imported here, because we use this only on the provider side
