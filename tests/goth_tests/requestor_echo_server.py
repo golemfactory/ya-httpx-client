@@ -6,6 +6,8 @@ SUBNET_TAG = sys.argv[1]
 
 async def main():
     print("AAAA")
+    await asyncio.sleep(10)
+    print("BBBB")
     assert False
 
 if __name__ == "__main__":

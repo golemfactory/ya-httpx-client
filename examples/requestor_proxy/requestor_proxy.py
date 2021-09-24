@@ -1,7 +1,12 @@
+#!/usr/bin/env python3
+import sys
+
 from quart import Quart
 
 from ya_httpx_client.serializable_request import Request, Response
 from ya_httpx_client.session import Session
+
+SUBNET_TAG = sys.argv[1]
 
 #   This is the only "host" we create here, so the name could be exactly anything
 PROVIDER_URL = 'http://provider_http_server'
@@ -20,7 +25,7 @@ INIT_CLUSTER_SIZE = 1
 
 #   Golem configuration - this will be passed directly to the Golem object
 #   https://handbook.golem.network/yapapi/api-reference#golem-objects
-EXECUTOR_CFG = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
+EXECUTOR_CFG = {'budget': 10, 'subnet_tag': SUBNET_TAG}
 
 
 async def init_session():
@@ -61,7 +66,7 @@ async def with_yhc_session():
 
 HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
 
-@app.route('/', defaults={'path': ''}, methods=HTTP_METHODS)
+@app.route('/', defaults={'_path': ''}, methods=HTTP_METHODS)
 @app.route('/<path:_path>', methods=HTTP_METHODS)
 async def catch_all(_path):
     res = await forward_request()

@@ -62,7 +62,7 @@ Usage:
 pip3 install -r examples/requestor_proxy/requirements.txt
 
 # Start the server
-python3 examples/requestor_proxy/requestor_proxy.py
+python3 examples/requestor_proxy/requestor_proxy.py devnet-beta
 
 # (other console) use the "local" server
 curl http://localhost:5000/add/3/4
