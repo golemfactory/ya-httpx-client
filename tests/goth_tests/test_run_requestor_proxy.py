@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -16,8 +17,16 @@ import requests
 logger = logging.getLogger("goth.test.run_proxy")
 
 
-@pytest.mark.asyncio
-async def test_run_requestor_proxy(
+@pytest.fixture(scope='module')
+def event_loop():
+    """This overrides `pytest.asyncio` fixture"""
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope='module')
+async def requestor_proxy(
     project_dir: Path, log_dir: Path, goth_config_path: Path
 ) -> None:
     goth_config = load_yaml(goth_config_path)
@@ -35,16 +44,33 @@ async def test_run_requestor_proxy(
         async with requestor.run_command_on_host(
             f"{requestor_script_path} goth",
             env=os.environ,
-        ) as (_cmd_task, cmd_monitor):
+        ) as (cmd_task, cmd_monitor):
             cmd_monitor.add_assertion(assert_no_errors)
 
             await cmd_monitor.wait_for_pattern(".*STARTED ON provider.*", timeout=200)
             logger.info("STARTED!")
 
-            res = requests.get('http://localhost:5000/add/1/2')
-            assert res.status_code == 200
-            assert res.text == '3'
+            yield
 
-            res = requests.get('http://localhost:5000/add/7/8')
-            assert res.status_code == 200
-            assert res.text == '-1'
+            cmd_task.cancel()
+
+
+@pytest.mark.asyncio
+async def test_1(requestor_proxy):
+    res = requests.get('http://localhost:5000/add/1/2')
+    assert res.status_code == 200
+    assert res.text == '3'
+
+
+@pytest.mark.asyncio
+async def test_2(requestor_proxy):
+    res = requests.get('http://localhost:5000/add/1/2')
+    assert res.status_code == 200
+    assert res.text == '4'
+
+
+@pytest.mark.asyncio
+async def test_3(requestor_proxy):
+    res = requests.get('http://localhost:5000/add/1/2')
+    assert res.status_code == 200
+    assert res.text == '3'
