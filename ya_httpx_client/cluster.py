@@ -112,10 +112,11 @@ class Cluster:
                 service_wrapper = None
 
     async def _create_service_wrapper(self):
-        capabilities = self._cls.REQUIRED_CAPABILITIES
+        service_cls = self._service_cls()
+        capabilities = service_cls.REQUIRED_CAPABILITIES
         payload = await vm.repo(image_hash=self.image_hash, capabilities=capabilities)
         return self.manager.create_service(
-            self._cls,
+            service_cls,
             run_service_params={
                 'payload': payload,
                 'network': self.network,
@@ -126,8 +127,7 @@ class Cluster:
             },
         )
 
-    @property
-    def _cls(self):
+    def _service_cls(self):
         if self.USE_VPN:
             return service_base.VPNServiceBase
         else:
