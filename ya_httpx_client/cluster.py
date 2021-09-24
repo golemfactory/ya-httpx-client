@@ -2,7 +2,13 @@ import asyncio
 import uuid
 from typing import TYPE_CHECKING
 
-from .service_base import ServiceBase
+USE_VPN = True
+
+#   TODO: move this to Cluster initialization
+if USE_VPN:
+    from .service_base import VPNServiceBase as ServiceBase
+else:
+    from .service_base import FileSerializationServiceBase as ServiceBase
 
 if TYPE_CHECKING:
     from typing import Callable, Union, SupportsInt, List, Type, Optional
