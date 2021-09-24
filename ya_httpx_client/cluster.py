@@ -2,16 +2,10 @@ import asyncio
 import uuid
 from typing import TYPE_CHECKING
 
-USE_VPN = True
-
-#   TODO: move this to Cluster initialization
-if USE_VPN:
-    from .service_base import VPNServiceBase as ServiceBase
-else:
-    from .service_base import FileSerializationServiceBase as ServiceBase
+from . import service_base
 
 if TYPE_CHECKING:
-    from typing import Callable, Union, SupportsInt, List, Type, Optional
+    from typing import Callable, Union, SupportsInt, List, Optional
     from yapapi_service_manager import ServiceManager
     from yapapi import WorkContext
     from yapapi.network import Network
@@ -25,6 +19,11 @@ class Cluster:
        should be merged into the same cluster-wrapper-thingy, but we can't do this without yapapi-side modifications.
        Currently I don't think an instance of `yapapi.Cluster` class could be used instead of this one.
     '''
+
+    #   If True, requests will be forwarded via VPN
+    #   If False, requests will be serialized
+    USE_VPN = True
+
     def __init__(self, manager: 'ServiceManager', image_hash: str, start_steps: 'Callable[[WorkContext, str], None]'):
         self.manager = manager
         self.image_hash = image_hash
@@ -49,7 +48,7 @@ class Cluster:
         self._manager_tasks: 'List[asyncio.Task]' = []
 
         #   This is a workaround for a missing yapapi feature
-        self._cls: 'Type[ServiceBase]' = self._create_cls()
+        self._cls = self._create_cls()
 
     @property
     def cnt(self) -> int:
@@ -114,9 +113,15 @@ class Cluster:
                 #         use this distinction). Think again if this is harmless.
                 service_wrapper = None
 
-    def _create_cls(self) -> 'Type[ServiceBase]':
+    def _create_cls(self):
         #   NOTE: this is ugly, but we're waiting for https://github.com/golemfactory/yapapi/issues/372
         class_name = 'Service_' + uuid.uuid4().hex
 
         #   NOTE: 'yhc' is from `ya-httpx-client'
-        return type(class_name, (ServiceBase,), {'_yhc_cluster': self})
+        return type(class_name, (self._base_cls(),), {'_yhc_cluster': self})
+
+    def _base_cls(self):
+        if self.USE_VPN:
+            return service_base.VPNServiceBase
+        else:
+            return service_base.FileSerializationServiceBase
