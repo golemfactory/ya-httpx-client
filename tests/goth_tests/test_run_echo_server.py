@@ -21,7 +21,7 @@ async def test_run_echo_server(
     project_dir: Path, log_dir: Path, goth_config_path: Path, config_overrides: List[Override]
 ) -> None:
     goth_config = load_yaml(goth_config_path, config_overrides)
-    requestor_script_path = project_dir / "tests" / "goth_tests" / "echo_server.py"
+    requestor_script_path = project_dir / "tests" / "goth_tests" / "requestor_echo_server.py"
     configure_logging(log_dir)
     runner = Runner(
         base_log_dir=log_dir,
@@ -33,7 +33,7 @@ async def test_run_echo_server(
         requestor = runner.get_probes(probe_type=RequestorProbe)[0]
 
         async with requestor.run_command_on_host(
-            f"{requestor_script_path} --subnet-tag goth",
+            f"{requestor_script_path} goth",
             env=os.environ,
         ) as (_cmd_task, cmd_monitor):
             cmd_monitor.add_assertion(assert_no_errors)
