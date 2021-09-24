@@ -1,6 +1,6 @@
 import json
 from typing import TYPE_CHECKING
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit, urlparse
 
 if TYPE_CHECKING:
     from typing import Dict, TypedDict, Tuple, Optional, List  # pylint: disable=ungrouped-imports
@@ -74,6 +74,10 @@ class Request:
         self.url = url
         self.data = data
         self.headers = headers
+
+    @property
+    def path(self) -> str:
+        return urlparse(self.url).path
 
     def replace_mount_url(self, new_base_url: str) -> None:
         if '://' not in new_base_url:

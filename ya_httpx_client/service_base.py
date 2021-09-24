@@ -5,28 +5,18 @@ import aiohttp
 
 from yapapi.services import Service
 from yapapi.payload import vm
-import shlex
 
 from .serializable_request import Response
 
 if TYPE_CHECKING:
     from yapapi.script import Script
 
-PROVIDER_URL = '0.0.0.0:80'
+USE_VPN = True
+if USE_VPN:
+    PROVIDER_URL = '0.0.0.0:80'
+else:
+    PROVIDER_URL = 'unix:///tmp/golem.sock'
 
-USE_VPN = False
-
-
-def _simple_proxy_start_steps(ctx, url):
-    ctx.run("/docker-entrypoint.sh")
-    ctx.run("/bin/chmod", "a+x", "/")
-    msg = "Hello from inside Golem!"
-    ctx.run(
-        "/bin/sh",
-        "-c",
-        f"echo {shlex.quote(msg)} > /usr/share/nginx/html/index.html",
-    )
-    ctx.run("/usr/sbin/nginx")
 
 
 class ServiceBase(Service):
@@ -46,7 +36,6 @@ class ServiceBase(Service):
         async for script in super().start():
             yield script
         start_steps = self._yhc_cluster.start_steps  # pylint: disable=no-member
-        # start_steps = _simple_proxy_start_steps
         start_steps(self._ctx, PROVIDER_URL)
         yield self._ctx.commit()
         print(f"STARTED ON {self.provider_name}")
@@ -58,10 +47,9 @@ class ServiceBase(Service):
             if USE_VPN:
                 res = await self._handle_request_via_vpn(req)
             else:
-                res = await self._handle_request_via_vpn(req)
-                # with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
-                #     yield self._handle_request_via_files_script(req, in_file.name, out_file.name)
-                #     res = Response.from_file(out_file.name)
+                with NamedTemporaryFile() as in_file, NamedTemporaryFile() as out_file:
+                    yield self._handle_request_via_files_script(req, in_file.name, out_file.name)
+                    res = Response.from_file(out_file.name)
             fut.set_result(res)
         yield
 
@@ -74,7 +62,7 @@ class ServiceBase(Service):
         return script
 
     async def _handle_request_via_vpn(self, req):
-        res_str = await self.handle_request('/')
+        res_str = await self.handle_request(req.path)
         res = Response(200, res_str.encode(), {})
         return res
 
@@ -94,8 +82,10 @@ class ServiceBase(Service):
         async with ws_session.ws_connect(
             instance_ws, headers={"Authorization": f"Bearer {app_key}"}
         ) as ws:
-            await ws.send_str("GET / HTTP/1.0\r\n\r\n")
+            print("GET ", query_string)
+            await ws.send_str(f"GET {query_string} HTTP/1.0\r\n\r\n")
             headers = await ws.__anext__()
+            print("HEADERS", headers)
             content = await ws.__anext__()
             data: bytes = content.data
 
