@@ -4,7 +4,7 @@ from .service_base import AbstractServiceBase
 from ..serializable_request import Response
 
 
-class FileSerializationServiceBase(AbstractServiceBase):
+class FileSerializationService(AbstractServiceBase):
     REQUIRED_CAPABILITIES = []
     PROVIDER_URL = 'unix:///tmp/golem.sock'
 

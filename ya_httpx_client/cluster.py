@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from yapapi.payload import vm
 
-from . import service_base
+from . import service
 
 if TYPE_CHECKING:
     from typing import Callable, Union, SupportsInt, List, Optional
@@ -129,6 +129,6 @@ class Cluster:
 
     def _service_cls(self):
         if self.USE_VPN:
-            return service_base.VPNServiceBase
+            return service.VPNService
         else:
-            return service_base.FileSerializationServiceBase
+            return service.FileSerializationService

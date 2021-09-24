@@ -5,7 +5,7 @@ from .service_base import AbstractServiceBase
 from ..serializable_request import Response
 
 
-class VPNServiceBase(AbstractServiceBase):
+class VPNService(AbstractServiceBase):
     REQUIRED_CAPABILITIES = [vm.VM_CAPS_VPN]
     PROVIDER_URL = '0.0.0.0:80'
 
@@ -26,10 +26,12 @@ class VPNServiceBase(AbstractServiceBase):
     async def _handle_request(self, req):
         ws_session = aiohttp.ClientSession()
         async with ws_session.ws_connect(self.instance_ws, headers=self.headers) as ws:
-            await ws.send_str(req.as_raw_request_str())
+            request_str = req.as_raw_request_str()
+            print('---\n', request_str)
+            await ws.send_str(request_str)
             headers = await ws.__anext__()
             content = await ws.__anext__()
         await ws_session.close()
-        
+
         res = Response.from_headers_and_content(headers, content)
         return res
