@@ -60,16 +60,25 @@ async def requestor_proxy(
 
 
 def assert_requests_equal(req_1: requests.Request, req_2: requests.Request):
-    #   Test on upper because this doesn't matter
-    assert req_1.method.upper() == req_2.method.upper()
+    #   Test on lower because this doesn't matter
+    assert req_1.method.lower() == req_2.method.lower()
 
     #   Test on path because the original host is not important
     assert urlparse(req_1.url).path == urlparse(req_2.url).path
+    
+    #   Headers - all lowercase
+    lc_headers_1 = {k.lower(): v.lower() for k, v in req_1.headers.items()}
+    lc_headers_2 = {k.lower(): v.lower() for k, v in req_2.headers.items()}
+    assert sorted(lc_headers_1) == sorted(lc_headers_2)
+
+    #   Data - testing on a prepared request because this is what we really care about
+    #   (this will be sent) and requests have a very permissive interface.
+    assert req_1.prepare().body == req_2.prepare().body
 
 
 @pytest.mark.parametrize('src_req', sample_requests)
-def test_request(requestor_proxy, src_req: requests.Request):
-# def test_request(src_req: requests.Request):
+# def test_request(requestor_proxy, src_req: requests.Request):
+def test_request(src_req: requests.Request):
     prepped = src_req.prepare()
     session = requests.Session()
 
