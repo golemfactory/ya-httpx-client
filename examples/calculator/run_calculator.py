@@ -9,7 +9,7 @@ session = Session(executor_cfg)
 @session.startup(
     url='http://calc',
     image_hash='1f43e06ecc4ef40084efcf57131aa6056c57b5732bef2bcb6a8cdad2',
-    init_cluster_size=3,
+    init_cluster_size=5,
 )
 def calculator_startup(ctx, listen_on):
     ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
@@ -46,7 +46,7 @@ async def add_many_times(client, total_request_cnt, max_concurrent_requests):
 
 async def run_calculator():
     async with session.client() as client:
-        await add_many_times(client, 50, 3)
+        await add_many_times(client, 50000, 3)
 
     await session.close()
 
