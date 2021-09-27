@@ -180,7 +180,20 @@ class Request:
         }
 
     def as_raw_request_str(self) -> str:
-        return f"{self.method.upper()} {self.path} HTTP/1.0\r\n\r\n"
+        return (
+            f"{self.method.upper()} {self.path} HTTP/1.0"
+            f"{self.raw_headers_str()}"
+            "\r\n"
+            f"{self.raw_body_str()}"
+        )
+
+    def raw_headers_str(self) -> str:
+        lines = [": ".join(key_val) + "\r\n" for key_val in self.headers.items()]
+        headers = "".join(lines)
+        return headers
+
+    def raw_body_str(self):
+        return self.data.decode()
 
     def as_requests_request(self) -> 'requests.Request':
         #   Imported here, because we use this only on the provider side
