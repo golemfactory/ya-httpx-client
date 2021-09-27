@@ -14,6 +14,9 @@ from .assertions import assert_no_errors
 
 import requests
 
+from ..sample_requests import sample_requests
+
+
 logger = logging.getLogger("goth.test.run_proxy")
 
 
@@ -52,22 +55,27 @@ async def requestor_proxy(
 
             yield
 
-            cmd_task.cancel()
+            # cmd_task.cancel()
 
 
-def test_1(requestor_proxy):
-    res = requests.get('http://localhost:5000/add/1/2')
+def requests_equal(req_1: requests.Request, req_2: requests.Request):
+    return \
+        req_1.method == req_2.method and \
+        req_1.url == req_2.url
+
+
+@pytest.mark.parametrize('src_req', sample_requests)
+def test_request(requestor_proxy, src_req: requests.Request):
+    prepped = src_req.prepare()
+    session = requests.Session()
+
+    res = session.send(prepped)
+
     assert res.status_code == 200
-    assert res.text == '3'
 
+    echo_data = res.json()
+    assert echo_data.get('echo') == 'echo'
 
-def test_2(requestor_proxy):
-    res = requests.get('http://localhost:5000/add/1/2')
-    assert res.status_code == 200
-    assert res.text == '4'
+    echo_req = requests.Request(**echo_data['req'])
 
-
-def test_3(requestor_proxy):
-    res = requests.get('http://localhost:5000/add/1/2')
-    assert res.status_code == 200
-    assert res.text == '3'
+    assert requests_equal(src_req, echo_req)

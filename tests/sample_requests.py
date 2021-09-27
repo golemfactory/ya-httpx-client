@@ -1,21 +1,31 @@
+from requests import Request
+from urllib.parse import urljoin
 
-BASE_URL = 'http://hi.my.name.is.golem'
+BASE_URL = 'http://localhost/'
 
 sample_requests = [
-    ('GET', BASE_URL, {}),
-    ('GET', BASE_URL + '/some/path', {}),
-    ('GET', BASE_URL + '/some/path/7', {'params': (('x', 7), ('y', 8))}),
-    ('GET', BASE_URL + '/some/path/7', {'params': (('x', 7), ('y', 8))}),
+    Request('get', BASE_URL),
+    Request('post', urljoin(BASE_URL, 'aaa/zz')),
+    Request('get', BASE_URL, params={'aa': 'bbb'}),
+    Request('get', BASE_URL, params={'key1': 'value1', 'key2': ['value2', 'value3']}),
 
-    ('patch', BASE_URL, {'headers': {'user-agent': 'my-app/0.0.1'}}),
-    ('patch', BASE_URL, {'headers': {'accept-encoding': 'gzip', 'user-agent': 'aaa'}}),
-    ('GET', BASE_URL, {'cookies': {'peanut': 'butter'}}),
+    Request('patch', BASE_URL, headers={'user-agent': 'my-app/0.0.1'}),
 
-    ('PUT', BASE_URL + '/file', {
-        'files': {'some-file': open('.gitignore', 'rb'),  # pylint: disable=consider-using-with
-                  'other-file': open('tests/echo_server/echo_server.py', 'r')}}),  # pylint: disable=consider-using-with
-    ('post', BASE_URL, {'data': {'x': 'y'}}),
-    ('post', BASE_URL, {'json': {'x': ['y', 'z', {'a': 7}]}}),
-    ('POST', BASE_URL + '/some/path/?a=11', {'data': {'x': 77, 'y': 88}}),
-    ('POST', BASE_URL, {'content': b'gAUygauygaihua\x32'}),
+    Request('post', BASE_URL, files={'file': open('.gitignore', 'rb')}),
+    Request('post', BASE_URL, files={'file': open('.gitignore', 'r')}),
+    Request('post', BASE_URL, files={'file': ('a.txt', 'bbb\nddd', 'application/vnd.ms-excel', {'Expires': '0'})}),
+
+    Request('post', urljoin(BASE_URL, 'aaa/zz'), data={'foo': 'bar'}),
+    Request('post', BASE_URL, data=[('foo', 'bar'), ('baz', 'foo')]),
+    Request('post', BASE_URL, data="kgkjhti7fg"),
+
+    Request('post', BASE_URL, json={'x': ['y', 'z', {'a': 7}]}),
+
+    Request('post', BASE_URL, cookies={'aa': 'bb'}),
+
+    Request('post', BASE_URL, auth=('aa', 'zz')),
+
+    #   requests do something with accept-encoding (--> compare tests.helpers.clean_headers)
+    Request('get', BASE_URL, headers={'accept-encoding': 'gzip'}),
+    Request('get', BASE_URL, headers={'Accept-Encoding': 'gzip', 'Something-Else': 'nope'}),
 ]
