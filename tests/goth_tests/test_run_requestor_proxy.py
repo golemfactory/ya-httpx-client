@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 
@@ -58,14 +59,17 @@ async def requestor_proxy(
             # cmd_task.cancel()
 
 
-def requests_equal(req_1: requests.Request, req_2: requests.Request):
-    return \
-        req_1.method == req_2.method and \
-        req_1.url == req_2.url
+def assert_requests_equal(req_1: requests.Request, req_2: requests.Request):
+    #   Test on upper because this doesn't matter
+    assert req_1.method.upper() == req_2.method.upper()
+
+    #   Test on path because the original host is not important
+    assert urlparse(req_1.url).path == urlparse(req_2.url).path
 
 
 @pytest.mark.parametrize('src_req', sample_requests)
 def test_request(requestor_proxy, src_req: requests.Request):
+# def test_request(src_req: requests.Request):
     prepped = src_req.prepare()
     session = requests.Session()
 
@@ -78,4 +82,4 @@ def test_request(requestor_proxy, src_req: requests.Request):
 
     echo_req = requests.Request(**echo_data['req'])
 
-    assert requests_equal(src_req, echo_req)
+    assert_requests_equal(src_req, echo_req)

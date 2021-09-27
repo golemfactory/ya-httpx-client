@@ -13,11 +13,10 @@ PROVIDER_URL = 'http://provider_http_server'
 
 #   Image hash and the `startup` function define the HTTP server that will be running on the provider,
 #   and thus the final behaviour of our requestor proxy.
-#   Here we use the same image/startup as in the other example (calculator), but any server that would work
-#   in a Dockerfile should be fine.
-IMAGE_HASH = '1f43e06ecc4ef40084efcf57131aa6056c57b5732bef2bcb6a8cdad2'
+#   Image with a simple echo server (-> examples/requestor_proxy/echo_server)
+IMAGE_HASH = 'bdadcf8955356d10c025411a2b47cabe67a4668f3603499737e8d74d'
 def startup(ctx, listen_on):
-    ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
+    ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "echo_server:app", "--daemon")
 
 #   Number of providers that will be processing requests. NOTE: providers have no shared state, so
 #   numbers >1 make sense only for stateless servers.
