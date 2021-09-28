@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from typing import Dict, TypedDict, Tuple, Optional, List  # pylint: disable=ungrouped-imports
     import requests
     import httpx
+    import aiohttp
 
     class DictResponse(TypedDict):
         status: int
@@ -26,8 +27,18 @@ class Response:
         self.headers = headers
 
     @classmethod
-    def from_headers_and_content(cls, headers: str, content: str) -> 'Response':
-        return Response(200, content.data, {})
+    def from_wsmessages(cls, headers_msg: 'aiohttp.WSMessage', content_msg: 'aiohttp.WSMessage') -> 'Response':
+        lines = headers_msg.data.decode('utf-8').splitlines()
+
+        status_code = lines[0].split()[1]
+
+        headers = {}
+        for header_line in lines[1:]:
+            if header_line:
+                name, value = header_line.split(': ', maxsplit=1)
+                headers[name] = value
+
+        return Response(status_code, content_msg.data, headers)
 
     @classmethod
     def from_file(cls, fname: str) -> 'Response':

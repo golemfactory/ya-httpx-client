@@ -32,8 +32,6 @@ def event_loop():
 async def requestor_proxy(
     project_dir: Path, log_dir: Path, goth_config_path: Path
 ) -> None:
-    yield
-    return
     goth_config = load_yaml(goth_config_path)
     requestor_script_path = project_dir / "examples" / "requestor_proxy" / "requestor_proxy.py"
     configure_logging(log_dir)
@@ -69,7 +67,6 @@ def test_correct_request(requestor_proxy, src_req: requests.Request):
     session = requests.Session()
 
     res = session.send(prepped)
-
     assert res.status_code == 200
 
     echo_data = res.json()
@@ -91,11 +88,32 @@ def test_405(requestor_proxy):
 
 
 def test_500(requestor_proxy):
-    res = requests.post('http://localhost:5000/bug')
+    res = requests.get('http://localhost:5000/bug')
     assert res.status_code == 500
 
 
 def test_headers(requestor_proxy):
-    res = requests.post('http://localhost:5000')
+    res = requests.get('http://localhost:5000/echo/')
+    assert res.status_code == 200
+
+    #   NOTE: those headers are also modified by locally running requestor_proxy
+    #   (e.g. `hypercorn-h11` server header is added).
+    expected_headers = {
+        'server': 'gunicorn, hypercorn-h11',
+        'date': '*',
+        'connection': 'close',
+        'content-type': 'application/json',
+        'content-length': '*',
+    }
+
+    got_headers = dict(res.headers)
+    assert set(expected_headers.keys()) == set(got_headers.keys())
+    for key, val in expected_headers.items():
+        if val != '*':
+            assert got_headers[key] == val
+
+
+def test_headers_2(requestor_proxy):
+    res = requests.get('http://localhost:5000')
     assert res.status_code == 200
     assert res.headers.get('foo') == 'bar'

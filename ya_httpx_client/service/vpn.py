@@ -27,11 +27,11 @@ class VPNService(AbstractServiceBase):
         ws_session = aiohttp.ClientSession()
         async with ws_session.ws_connect(self.instance_ws, headers=self.headers) as ws:
             request_str = req.as_raw_request_str()
-            print('---\n', request_str)
+            # print('---SENDING REQUEST---\n', request_str, '\n---REQUEST SENT---')
             await ws.send_str(request_str)
             headers = await ws.__anext__()
             content = await ws.__anext__()
         await ws_session.close()
 
-        res = Response.from_headers_and_content(headers, content)
+        res = Response.from_wsmessages(headers, content)
         return res
