@@ -72,5 +72,5 @@ class Session:
 
     async def close(self) -> None:
         for cluster in self.clusters.values():
-            cluster.stop()
+            await cluster.stop()
         await self.manager.close()

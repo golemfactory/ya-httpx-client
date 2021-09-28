@@ -1,7 +1,7 @@
 from requests import Request
 from urllib.parse import urljoin
 
-BASE_URL = 'http://localhost:5000/'
+BASE_URL = 'http://localhost:5000/echo/'
 
 sample_requests = [
     Request('get', BASE_URL),

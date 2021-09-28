@@ -57,11 +57,13 @@ class Cluster:
         if self._new_services_starter_task is None:
             self._new_services_starter_task = asyncio.create_task(self._start_new_services())
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         for task in self._manager_tasks:
             task.cancel()
         if self._new_services_starter_task is not None:
             self._new_services_starter_task.cancel()
+        if self.network:
+            await self.network.remove()
 
     def set_size(self, size: 'Union[int, Callable[[Cluster], SupportsInt]]') -> None:
         if isinstance(size, int):
