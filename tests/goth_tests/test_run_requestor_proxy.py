@@ -32,6 +32,8 @@ def event_loop():
 async def requestor_proxy(
     project_dir: Path, log_dir: Path, goth_config_path: Path
 ) -> None:
+    yield
+    return
     goth_config = load_yaml(goth_config_path)
     requestor_script_path = project_dir / "examples" / "requestor_proxy" / "requestor_proxy.py"
     configure_logging(log_dir)
@@ -76,3 +78,24 @@ def test_correct_request(requestor_proxy, src_req: requests.Request):
     echo_req = requests.Request(**echo_data['req'])
 
     assert_requests_equal(src_req, prepped, echo_req)
+
+
+def test_404(requestor_proxy):
+    res = requests.get('http://localhost:5000/nope')
+    assert res.status_code == 404
+
+
+def test_405(requestor_proxy):
+    res = requests.post('http://localhost:5000')
+    assert res.status_code == 405
+
+
+def test_500(requestor_proxy):
+    res = requests.post('http://localhost:5000/bug')
+    assert res.status_code == 500
+
+
+def test_headers(requestor_proxy):
+    res = requests.post('http://localhost:5000')
+    assert res.status_code == 200
+    assert res.headers.get('foo') == 'bar'

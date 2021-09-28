@@ -14,7 +14,7 @@ PROVIDER_URL = 'http://provider_http_server'
 #   Image hash and the `startup` function define the HTTP server that will be running on the provider,
 #   and thus the final behaviour of our requestor proxy.
 #   Image with a simple echo server (-> examples/requestor_proxy/echo_server)
-IMAGE_HASH = 'bdadcf8955356d10c025411a2b47cabe67a4668f3603499737e8d74d'
+IMAGE_HASH = 'b9c6a8fd0b5f457351f7d1f668cac40eaea310e4f63b2d754551e869'
 def startup(ctx, listen_on):
     ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "echo_server:app", "--daemon")
 
