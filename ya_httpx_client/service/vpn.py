@@ -19,7 +19,7 @@ class VPNService(AbstractServiceBase):
         yield
 
     async def _handle_request_with_504_guard(self, req):
-        max_attempts = 7
+        max_attempts = 3
         for _ in range(max_attempts):
             try:
                 return await self._handle_request(req)
