@@ -146,11 +146,5 @@ NOTE: setting size to anything other than an integer should be considered an exp
 
 ## Future development
 
-1. Additional example: `requestor-proxy` - am HTTP server running on **requestor** that serves as a proxy to server(s) running on the provider(s).
-2. Currently, when the service stops, it is restarted on another provider. This makes sense only for stateless services, but there is no way to turn this off.
-   The developer should decide if they want to restart the service or not (or maybe stop the execution?).
-
-## Known issues
-
-1. Communication with providers is quite slow (1-2s for each request). This will be fixed when the new communication options are implemented in [yagna](https://github.com/golemfactory/yagna)
-   (hopefully in the next major release).
+Currently, when the service stops, it is restarted on another provider. This makes sense only for stateless services, but there is no way to turn this off.
+The developer should decide if they want to restart the service or not (or maybe stop the execution?).
