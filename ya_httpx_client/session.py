@@ -7,6 +7,7 @@ from yapapi_service_manager import ServiceManager
 
 from .serializable_request import Request
 from .cluster import Cluster
+from .network_wrapper import NetworkWrapper
 
 if TYPE_CHECKING:
     from typing import Dict, Callable, SupportsInt, Union, AsyncGenerator  # pylint: disable=ungrouped-imports
@@ -33,6 +34,7 @@ class Session:
     def __init__(self, executor_cfg: dict):
         self.manager = ServiceManager(executor_cfg)
         self.clusters: 'Dict[str, Cluster]' = {}
+        self.network_wrapper = NetworkWrapper(self.manager)
 
     def set_cluster_size(self, url: str, size: 'Union[int, Callable[[Cluster], SupportsInt]]') -> None:
         self.clusters[url].set_size(size)
@@ -47,7 +49,7 @@ class Session:
             raise KeyError(f'Service for url {url} already exists')
 
         def define_service(start_steps: 'Callable[[WorkContext, str], None]') -> None:
-            self.clusters[url] = Cluster(self.manager, image_hash, start_steps)
+            self.clusters[url] = Cluster(self.manager, image_hash, start_steps, self.network_wrapper)
             self.set_cluster_size(url, init_cluster_size)
 
         return define_service
@@ -72,5 +74,6 @@ class Session:
 
     async def close(self) -> None:
         for cluster in self.clusters.values():
-            await cluster.stop()
+            cluster.stop()
+        await self.network_wrapper.remove_network()
         await self.manager.close()

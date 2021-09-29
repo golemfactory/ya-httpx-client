@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from typing import Callable, Union, SupportsInt, List, Optional
     from yapapi_service_manager import ServiceManager
     from yapapi import WorkContext
-    from yapapi.network import Network
+    from .network_wrapper import NetworkWrapper
 
 
 class Cluster:
@@ -25,13 +25,16 @@ class Cluster:
     #   If False, requests will be serialized
     USE_VPN = True
 
-    def __init__(self, manager: 'ServiceManager', image_hash: str, start_steps: 'Callable[[WorkContext, str], None]'):
+    def __init__(
+            self,
+            manager: 'ServiceManager',
+            image_hash: str, start_steps: 'Callable[[WorkContext, str], None]',
+            network_wrapper: 'NetworkWrapper'
+    ):
         self.manager = manager
         self.image_hash = image_hash
         self.start_steps = start_steps
-
-        #   VPN network all instances in this cluster will be attached to
-        self.network: Optional['Network'] = None
+        self.network_wrapper = network_wrapper
 
         #   This queue is filled by YagnaTransport and emptied by Service instances
         self.request_queue: asyncio.Queue = asyncio.Queue()
@@ -57,13 +60,11 @@ class Cluster:
         if self._new_services_starter_task is None:
             self._new_services_starter_task = asyncio.create_task(self._start_new_services())
 
-    async def stop(self) -> None:
+    def stop(self) -> None:
         for task in self._manager_tasks:
             task.cancel()
         if self._new_services_starter_task is not None:
             self._new_services_starter_task.cancel()
-        if self.network:
-            await self.network.remove()
 
     def set_size(self, size: 'Union[int, Callable[[Cluster], SupportsInt]]') -> None:
         if isinstance(size, int):
@@ -72,19 +73,11 @@ class Cluster:
             self.expected_cnt = size(self)
 
     async def _start_new_services(self) -> None:
-        self.network = await self._create_network()
         while True:
             expected_cnt = int(self.expected_cnt)
             new_tasks = [asyncio.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
             self._manager_tasks += new_tasks
             await asyncio.sleep(1)
-
-    async def _create_network(self) -> 'Network':
-        #   TODO: generate IPs? Now this will fail for more than one cluster?
-        #   Possible solution: make the Network a class attribute, lazy created.
-        #   Everything will work in the same network.
-        ip = "192.168.0.1/24"
-        return await self.manager.create_network(ip)
 
     async def _manage_single_service(self) -> None:
         service_wrapper = None
@@ -117,11 +110,13 @@ class Cluster:
         service_cls = self._service_cls()
         capabilities = service_cls.REQUIRED_CAPABILITIES
         payload = await vm.repo(image_hash=self.image_hash, capabilities=capabilities)
+        network = await self.network_wrapper.network()
+
         return self.manager.create_service(
             service_cls,
             run_service_params={
                 'payload': payload,
-                'network': self.network,
+                'network': network,
                 'instance_params': [{
                     'start_steps': self.start_steps,
                     'request_queue': self.request_queue,
