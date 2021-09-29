@@ -1,3 +1,7 @@
+'''A flask-based server with an /echo/ route that returns everything that was sent and a some
+other more-or-less random routes. It is started on providers as a part of requestor_proxy example.
+NOTE: this is also used in goth tests (tests/goth_tests/test_run_requestor_proxy.py)'''
+
 from flask import Flask
 from ya_httpx_client.serializable_request import Request
 
