@@ -125,7 +125,5 @@ class Cluster:
         )
 
     def _service_cls(self):
-        if self.USE_VPN:
-            return service.VPNService
-        else:
-            return service.FileSerializationService
+        cls = service.VPNService if self.USE_VPN else service.FileSerializationService
+        return cls

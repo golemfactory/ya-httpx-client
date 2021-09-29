@@ -6,6 +6,8 @@ from yapapi.services import Service
 class AbstractServiceBase(ABC, Service):
     '''Base class for all services. Contains common things, inheriting classes
     are expected to implemented `run` method.'''
+    PROVIDER_URL = ''  # TODO this will be removed with https://github.com/golemfactory/ya-httpx-client/issues/14
+
     def __init__(self, *args, start_steps, request_queue, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -23,7 +25,9 @@ class AbstractServiceBase(ABC, Service):
 
     async def run(self):
         raise NotImplementedError
-        yield  # method run must be a generator
+
+        # method run must be a generator
+        yield  # pylint: disable=unreachable
 
     def restart_failed_request(self) -> None:
         '''Put failed request back into request queue'''

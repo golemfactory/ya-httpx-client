@@ -42,7 +42,7 @@ class Response:
 
     @classmethod
     def from_file(cls, fname: str) -> 'Response':
-        with open(fname, 'r') as f:
+        with open(fname, 'r', encoding='utf-8') as f:
             return cls.from_json(f.read())
 
     @classmethod
@@ -63,7 +63,7 @@ class Response:
         return cls(res.status_code, res.content, dict(res.headers))
 
     def to_file(self, fname: str) -> None:
-        with open(fname, 'w') as f:
+        with open(fname, 'w', encoding='utf-8') as f:
             f.write(self.as_json())
 
     def as_json(self) -> str:
@@ -123,7 +123,7 @@ class Request:
 
     @classmethod
     def from_file(cls, fname: str) -> 'Request':
-        with open(fname, 'r') as f:
+        with open(fname, 'r', encoding='utf-8') as f:
             return cls.from_json(f.read())
 
     @classmethod
@@ -176,7 +176,7 @@ class Request:
         )
 
     def to_file(self, fname: str) -> None:
-        with open(fname, 'w') as f:
+        with open(fname, 'w', encoding='utf-8') as f:
             f.write(self.as_json())
 
     def as_json(self) -> str:

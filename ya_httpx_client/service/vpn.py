@@ -41,7 +41,7 @@ class VPNService(AbstractServiceBase):
 
     @property
     def _ws_headers(self):
-        app_key = self.cluster._engine._api_config.app_key
+        app_key = self.cluster._engine._api_config.app_key  # pylint: disable=protected-access
         return {"Authorization": f"Bearer {app_key}"}
 
     @property
