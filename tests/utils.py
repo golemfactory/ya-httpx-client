@@ -4,9 +4,9 @@ from urllib.parse import urlparse
 
 def assert_requests_equal(req_1: requests.Request, prep_1: requests.PreparedRequest, req_2: requests.Request):
     '''
-    NOTE: prep_1 is assumed to be a prepared req_1.
-          This is super-ugly but harmless, we do this to avoid as many request-specific testing/comparing
-          issues as possible.
+    Assert req_1 (that was prepared as prep_1) is the same request as req_2.
+    NOTE: prep_1 is assumed to be a prepared req_1, this is super-ugly but harmless, we do this to avoid
+          as many request-specific testing/comparing issues as possible.
     '''
     #   Test on lower because this doesn't matter
     assert req_1.method.lower() == req_2.method.lower()
