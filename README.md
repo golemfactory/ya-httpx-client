@@ -71,6 +71,25 @@ curl http://localhost:5000/add/3/4
 
 For the details on the configuration, check comments in the code.
 
+### Goth tests
+
+```
+pip3 install goth pytest pytest-asyncio .[requestor]
+pip3 install -r examples/requestor_proxy/requirements.txt
+# (NOTE: there are some version conflicts between those requirements and goth requirements,
+# but as long as you process in this order, everything should be fine)
+pytest -s
+
+# (TODO)
+# ... wait for quart logs saying the server is ready
+# and from other console:
+curl http://localhost:5000
+
+# wait for all tests to run
+# (TODO) manual stop
+ctrl+C
+```
+
 ### Requestor agent quickstart
 
 ```python
