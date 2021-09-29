@@ -2,13 +2,13 @@ import asyncio
 
 from ya_httpx_client.session import Session
 
-executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
+executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta'}
 session = Session(executor_cfg)
 
 
 @session.startup(
     url='http://calc',
-    image_hash='1f43e06ecc4ef40084efcf57131aa6056c57b5732bef2bcb6a8cdad2',
+    image_hash='3bf3667fd14ed87881e7e868f551fac0e4c15fe202e68203b384af98',
     init_cluster_size=3,
 )
 def calculator_startup(ctx, listen_on):
