@@ -25,7 +25,6 @@ sample_requests = [
 
     Request('post', BASE_URL, auth=('aa', 'zz')),
 
-    #   requests do something with accept-encoding (--> compare tests.helpers.clean_headers)
     Request('get', BASE_URL, headers={'accept-encoding': 'gzip'}),
     Request('get', BASE_URL, headers={'Accept-Encoding': 'gzip', 'Something-Else': 'nope'}),
 ]
