@@ -1,5 +1,6 @@
-from requests import Request
 from urllib.parse import urljoin
+
+from requests import Request
 
 BASE_URL = 'http://localhost:5000/echo/'
 
@@ -11,8 +12,8 @@ sample_requests = [
 
     Request('patch', BASE_URL, headers={'user-agent': 'my-app/0.0.1'}),
 
-    Request('post', BASE_URL, files={'file': open('.gitignore', 'rb')}),
-    Request('post', BASE_URL, files={'file': open('.gitignore', 'r')}),
+    Request('post', BASE_URL, files={'file': open('.gitignore', 'rb')}),  # pylint: disable=consider-using-with
+    Request('post', BASE_URL, files={'file': open('.gitignore', 'r', encoding='utf-8')}),  # pylint: disable=consider-using-with
     Request('post', BASE_URL, files={'file': ('a.txt', 'bbb\nddd', 'application/vnd.ms-excel', {'Expires': '0'})}),
 
     Request('post', urljoin(BASE_URL, 'aaa/zz'), data={'foo': 'bar'}),

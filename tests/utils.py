@@ -1,5 +1,6 @@
-import requests
 from urllib.parse import urlparse
+
+import requests
 
 
 def assert_requests_equal(req_1: requests.Request, prep_1: requests.PreparedRequest, req_2: requests.Request):

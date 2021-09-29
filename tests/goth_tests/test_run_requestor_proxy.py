@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name,unused-argument
+
 import asyncio
 import logging
 import os
@@ -6,14 +8,13 @@ from pathlib import Path
 
 import pytest
 
+import requests
 from goth.configuration import load_yaml
 from goth.runner.log import configure_logging
 from goth.runner import Runner
 from goth.runner.probe import RequestorProbe
 
 from .assertions import assert_no_errors
-
-import requests
 
 from ..sample_requests import sample_requests
 from ..utils import assert_requests_equal
@@ -49,7 +50,7 @@ async def requestor_proxy(
         async with requestor.run_command_on_host(
             f"{requestor_script_path} goth",
             env=os.environ,
-        ) as (cmd_task, cmd_monitor):
+        ) as (_cmd_task, cmd_monitor):
             cmd_monitor.add_assertion(assert_no_errors)
 
             await cmd_monitor.wait_for_pattern(".*STARTED ON provider.*", timeout=200)

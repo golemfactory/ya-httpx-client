@@ -14,11 +14,11 @@ def project_dir() -> Path:
 def log_dir() -> Path:
     base_dir = Path("/", "tmp", "goth-tests")
     date_str = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S%z")
-    log_dir = base_dir / f"goth_{date_str}"
-    log_dir.mkdir(parents=True)
-    return log_dir
+    dir_ = base_dir / f"goth_{date_str}"
+    dir_.mkdir(parents=True)
+    return dir_
 
 
 @pytest.fixture(scope="session")
-def goth_config_path(project_dir) -> Path:
+def goth_config_path(project_dir) -> Path:  # pylint: disable=W0621
     return project_dir / "tests" / "goth_tests" / "assets" / "goth-config.yml"

@@ -17,7 +17,8 @@ def hello():
 
 @app.route('/bug', methods=['GET'])
 def oops():
-    1 / 0  # ooops --> checks if 500 is handled correctly
+    # ooops --> checks if 500 is handled correctly
+    1 / 0   # pylint: disable=pointless-statement
 
 
 @app.route('/echo/', defaults={'_path': ''}, methods=HTTP_METHODS)
