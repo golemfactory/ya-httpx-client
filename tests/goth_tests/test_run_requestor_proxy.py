@@ -32,6 +32,9 @@ def event_loop():
 async def requestor_proxy(
     project_dir: Path, log_dir: Path, goth_config_path: Path
 ) -> None:
+    """Test function that uses this fixture will be able to communicate with
+    `examples/requestor_proxy/requestor_proxy.py` script running in a goth subnet"""
+
     goth_config = load_yaml(goth_config_path)
     requestor_script_path = project_dir / "examples" / "requestor_proxy" / "requestor_proxy.py"
     configure_logging(log_dir)
@@ -39,8 +42,6 @@ async def requestor_proxy(
         base_log_dir=log_dir,
         compose_config=goth_config.compose_config,
     )
-    """Test function that uses this fixture will be able to communicate with
-    `examples/requestor_proxy/requestor_proxy.py` script running in a goth subnet"""
 
     async with runner(goth_config.containers):
         requestor = runner.get_probes(probe_type=RequestorProbe)[0]
@@ -61,8 +62,9 @@ async def requestor_proxy(
 
 @pytest.mark.parametrize('src_req', sample_requests)
 def test_correct_request(requestor_proxy, src_req: requests.Request):
-    '''Send a request to the echo server. Expect 200 and data that will contain
-    all the information necessary to recreate the source request'''
+    """Send a request to the echo server. Expect 200 and data that will contain
+    all the information necessary to recreate the source request.
+    This assumes `src_req.url` matches the echo url, this is not checked"""
     prepped = src_req.prepare()
     session = requests.Session()
 
