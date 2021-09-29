@@ -36,6 +36,9 @@ def assert_requests_equal(req_1: requests.Request, prep_1: requests.PreparedRequ
     if not body_1 and not body_2:
         return
 
+    assert body_1 is not None
+    assert body_2 is not None
+
     #   Encode both bodies (our echo server returns text whatever was sent --> testing artifact)
     if isinstance(body_1, str):
         body_1 = body_1.encode('utf-8')

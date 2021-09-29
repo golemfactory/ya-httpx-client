@@ -1,11 +1,12 @@
 from tempfile import NamedTemporaryFile
+from typing import List
 
 from .service_base import AbstractServiceBase
 from ..serializable_request import Response
 
 
 class FileSerializationService(AbstractServiceBase):
-    REQUIRED_CAPABILITIES = []
+    REQUIRED_CAPABILITIES: List[str] = []
     PROVIDER_URL = 'unix:///tmp/golem.sock'
 
     async def run(self):

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from typing import AsyncGenerator
 from pathlib import Path
 
 import pytest
@@ -31,7 +32,7 @@ def event_loop():
 @pytest.fixture(scope='module')
 async def requestor_proxy(
     project_dir: Path, log_dir: Path, goth_config_path: Path
-) -> None:
+) -> AsyncGenerator:
     """Test function that uses this fixture will be able to communicate with
     `examples/requestor_proxy/requestor_proxy.py` script running in a goth subnet"""
 
