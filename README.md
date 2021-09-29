@@ -49,7 +49,7 @@ Usage: `python3 examples/calculator/run_calculator.py`
 #### Requestor proxy
 
 [Second example](examples/requestor_proxy) is a generic HTTP server running on the **requestor** side that:
-* On startup starts a http server on provider(s). There are no assumptions about this server, in our example it is just the calculator from the previous example.
+* On startup starts a http server on provider(s). There are no assumptions about this server, in our example it is a simple echo server.
 * Accepts *any* request
 * Forwards every request to the provider and responds with the response received
 
