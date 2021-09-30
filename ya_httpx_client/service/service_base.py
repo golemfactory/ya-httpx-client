@@ -6,7 +6,6 @@ from yapapi.services import Service
 class AbstractServiceBase(ABC, Service):
     '''Base class for all services. Contains common things, inheriting classes
     are expected to implemented `run` method.'''
-    PROVIDER_URL = ''  # TODO this will be removed with https://github.com/golemfactory/ya-httpx-client/issues/14
 
     def __init__(self, *args, start_steps, request_queue, **kwargs):
         super().__init__(*args, **kwargs)
@@ -19,7 +18,7 @@ class AbstractServiceBase(ABC, Service):
     async def start(self):
         async for script in super().start():
             yield script
-        self.start_steps(self._ctx, self.PROVIDER_URL)
+        self.start_steps(self._ctx)
         yield self._ctx.commit()
         print(f"STARTED ON {self.provider_name}")
 

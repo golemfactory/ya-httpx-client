@@ -7,9 +7,9 @@ from ..serializable_request import Response
 
 class FileSerializationService(AbstractServiceBase):
     REQUIRED_CAPABILITIES: List[str] = []
-    PROVIDER_URL = 'unix:///tmp/golem.sock'
 
     async def run(self):
+        provider_url = 'unix:///tmp/golem.sock'
         while True:
             req, fut = self.current_req, self.current_fut = await self.queue.get()
             print(f"processing {req.url} on {self.provider_name}")
@@ -17,7 +17,7 @@ class FileSerializationService(AbstractServiceBase):
                 req.to_file(in_file.name)
                 script = self._ctx.new_script()
                 script.upload_file(in_file.name, '/golem/work/req.json')
-                script.run('/bin/sh', '-c', f'python -m ya_httpx_client --url {self.PROVIDER_URL} req.json res.json')
+                script.run('/bin/sh', '-c', f'python -m ya_httpx_client --url {provider_url} req.json res.json')
                 script.download_file('/golem/work/res.json', out_file.name)
                 yield script
 
