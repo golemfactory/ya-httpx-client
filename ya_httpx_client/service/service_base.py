@@ -1,16 +1,17 @@
 from abc import ABC
 
 from yapapi.services import Service
+from yapapi.script.command import Run
 
 
 class AbstractServiceBase(ABC, Service):
     '''Base class for all services. Contains common things, inheriting classes
     are expected to implemented `run` method.'''
 
-    def __init__(self, *args, start_steps, request_queue, **kwargs):
+    def __init__(self, *args, entrypoint, request_queue, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.start_steps = start_steps
+        self.entrypoint = entrypoint
         self.queue = request_queue
 
         self.current_req, self.current_fut = None, None
@@ -18,8 +19,12 @@ class AbstractServiceBase(ABC, Service):
     async def start(self):
         async for script in super().start():
             yield script
-        self.start_steps(self._ctx)
-        yield self._ctx.commit()
+
+        if self.entrypoint:
+            script = self._ctx.new_script()
+            script.add(Run(*self.entrypoint))
+            yield script
+
         print(f"STARTED ON {self.provider_name}")
 
     async def run(self):

@@ -2,17 +2,17 @@ import asyncio
 
 from ya_httpx_client.session import Session
 
+
 executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta'}
 session = Session(executor_cfg)
-
-
-@session.startup(
+session.add_url(
     url='http://calc',
     image_hash='3bf3667fd14ed87881e7e868f551fac0e4c15fe202e68203b384af98',
+    entrypoint=(
+        "/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", "0.0.0.0:80", "calculator_server:app", "--daemon",
+    ),
     init_cluster_size=3,
 )
-def calculator_startup(ctx, listen_on):
-    ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
 
 
 async def add(client, x, y):
