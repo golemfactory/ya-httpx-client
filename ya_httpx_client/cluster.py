@@ -28,7 +28,7 @@ class Cluster:
             self,
             manager: 'ServiceManager',
             image_hash: str,
-            entrypoint: 'Optional[Tuple[str]]',
+            entrypoint: 'Optional[Tuple[str, ...]]',
             network_wrapper: 'NetworkWrapper'
     ):
         self.manager = manager

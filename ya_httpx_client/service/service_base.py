@@ -1,20 +1,27 @@
 from abc import ABC
+from typing import TYPE_CHECKING
 
 from yapapi.services import Service
 from yapapi.script.command import Run
+
+if TYPE_CHECKING:
+    import asyncio
+    from typing import Tuple, Optional
+    from ya_httpx_client.serializable_request import Request
 
 
 class AbstractServiceBase(ABC, Service):
     '''Base class for all services. Contains common things, inheriting classes
     are expected to implement the `run` method.'''
 
-    def __init__(self, *args, entrypoint, request_queue, **kwargs):
+    def __init__(self, *args, entrypoint: 'Tuple[str, ...]', request_queue: 'asyncio.Queue', **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.entrypoint = entrypoint
-        self.queue = request_queue
+        self.entrypoint: 'Tuple[str, ...]' = entrypoint
+        self.queue: 'asyncio.Queue' = request_queue
 
-        self.current_req, self.current_fut = None, None
+        self.current_req: 'Optional[Request]' = None
+        self.current_fut: 'Optional[asyncio.Future]' = None
 
     async def start(self):
         async for script in super().start():

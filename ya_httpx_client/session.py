@@ -42,7 +42,7 @@ class Session:
         self,
         url: str,
         image_hash: str,
-        entrypoint: 'Optional[Tuple[str]]' = None,
+        entrypoint: 'Optional[Tuple[str, ...]]' = None,
         init_cluster_size: 'Union[int, Callable[[Cluster], SupportsInt]]' = 1
     ) -> None:
         if url in self.clusters:
