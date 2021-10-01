@@ -22,13 +22,14 @@ class Cluster:
     '''
 
     #   If True, requests will be forwarded via VPN
-    #   If False, requests will be serialized
+    #   If False, requests will be serialized to a temporary file
     USE_VPN = True
 
     def __init__(
             self,
             manager: 'ServiceManager',
-            image_hash: str, start_steps: 'Callable[[WorkContext, str], None]',
+            image_hash: str,
+            start_steps: 'Callable[[WorkContext, str], None]',
             network_wrapper: 'NetworkWrapper'
     ):
         self.manager = manager

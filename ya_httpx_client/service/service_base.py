@@ -5,7 +5,7 @@ from yapapi.services import Service
 
 class AbstractServiceBase(ABC, Service):
     '''Base class for all services. Contains common things, inheriting classes
-    are expected to implemented `run` method.'''
+    are expected to implement the `run` method.'''
     PROVIDER_URL = ''  # TODO this will be removed with https://github.com/golemfactory/ya-httpx-client/issues/14
 
     def __init__(self, *args, start_steps, request_queue, **kwargs):
