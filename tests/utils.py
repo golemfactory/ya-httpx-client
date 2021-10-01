@@ -28,7 +28,7 @@ def assert_requests_equal(req_1: requests.Request, prep_1: requests.PreparedRequ
         if name in lc_headers_2 and name not in lc_headers_1:
             del lc_headers_2[name]
 
-    assert sorted(lc_headers_1) == sorted(lc_headers_2)
+    assert sorted(lc_headers_1.items()) == sorted(lc_headers_2.items())
 
     #   Data
     body_1 = prep_1.body

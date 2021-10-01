@@ -21,7 +21,7 @@ class Cluster:
     '''
 
     #   If True, requests will be forwarded via VPN
-    #   If False, requests will be serialized
+    #   If False, requests will be serialized to a temporary file
     USE_VPN = True
 
     def __init__(

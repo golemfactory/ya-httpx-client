@@ -6,7 +6,7 @@ from yapapi.script.command import Run
 
 class AbstractServiceBase(ABC, Service):
     '''Base class for all services. Contains common things, inheriting classes
-    are expected to implemented `run` method.'''
+    are expected to implement the `run` method.'''
 
     def __init__(self, *args, entrypoint, request_queue, **kwargs):
         super().__init__(*args, **kwargs)

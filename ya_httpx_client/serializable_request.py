@@ -28,7 +28,7 @@ class Response:
 
     @classmethod
     def from_wsmessages(cls, headers_msg: 'aiohttp.WSMessage', content_msg: 'aiohttp.WSMessage') -> 'Response':
-        lines = headers_msg.data.decode('utf-8').splitlines()
+        lines = headers_msg.data.decode('ascii').splitlines()
 
         status_code = lines[0].split()[1]
 

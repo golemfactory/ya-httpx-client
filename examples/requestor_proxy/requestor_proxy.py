@@ -14,7 +14,7 @@ PROVIDER_URL = 'http://provider_http_server'
 #   Image hash and entrypoint define the HTTP server that will be running on the provider,
 #   and thus the final behaviour of our requestor proxy.
 #   This is a image with a simple echo server (-> examples/requestor_proxy/echo_server), used in tests,
-#   but any server that would works a Dockerfile should be fine.
+#   but any server that would work in a Dockerfile should be fine.
 IMAGE_HASH = 'b9c6a8fd0b5f457351f7d1f668cac40eaea310e4f63b2d754551e869'
 ENTRYPOINT = ("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", '0.0.0.0:80', "echo_server:app", "--daemon")
 
