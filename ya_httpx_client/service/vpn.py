@@ -7,7 +7,6 @@ from ..serializable_request import Response
 
 class VPNService(AbstractServiceBase):
     REQUIRED_CAPABILITIES = [vm.VM_CAPS_VPN]
-    PROVIDER_URL = '0.0.0.0:80'
 
     async def run(self):
         while True:

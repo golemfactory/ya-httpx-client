@@ -6,9 +6,8 @@ from yapapi.payload import vm
 from . import service
 
 if TYPE_CHECKING:
-    from typing import Callable, Union, SupportsInt, List, Optional
+    from typing import Callable, Union, SupportsInt, List, Optional, Tuple
     from yapapi_service_manager import ServiceManager
-    from yapapi import WorkContext
     from .network_wrapper import NetworkWrapper
 
 
@@ -29,12 +28,12 @@ class Cluster:
             self,
             manager: 'ServiceManager',
             image_hash: str,
-            start_steps: 'Callable[[WorkContext, str], None]',
+            entrypoint: 'Optional[Tuple[str, ...]]',
             network_wrapper: 'NetworkWrapper'
     ):
         self.manager = manager
         self.image_hash = image_hash
-        self.start_steps = start_steps
+        self.entrypoint = entrypoint
         self.network_wrapper = network_wrapper
 
         #   This queue is filled by YagnaTransport and emptied by Service instances
@@ -119,7 +118,7 @@ class Cluster:
                 'payload': payload,
                 'network': network,
                 'instance_params': [{
-                    'start_steps': self.start_steps,
+                    'entrypoint': self.entrypoint,
                     'request_queue': self.request_queue,
                 }],
             },
