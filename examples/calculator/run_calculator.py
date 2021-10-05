@@ -48,7 +48,7 @@ async def add_many_times(client, total_request_cnt, max_concurrent_requests):
 
 async def run_calculator():
     async with session.client() as client:
-        await add_many_times(client, 5000, CLUSTER_SIZE + 3)
+        await add_many_times(client, 50, CLUSTER_SIZE + 3)
 
     await session.close()
 
