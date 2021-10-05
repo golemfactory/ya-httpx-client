@@ -1,10 +1,6 @@
 import asyncio
 import sys
 from typing import TYPE_CHECKING
-if sys.version_info >= (3, 7):
-    from contextlib import asynccontextmanager
-else:
-    from async_generator import asynccontextmanager
 
 import httpx
 from yapapi_service_manager import ServiceManager
@@ -12,6 +8,11 @@ from yapapi_service_manager import ServiceManager
 from .serializable_request import Request
 from .cluster import Cluster
 from .network_wrapper import NetworkWrapper
+
+if sys.version_info >= (3, 7):
+    from contextlib import asynccontextmanager
+else:
+    from async_generator import asynccontextmanager
 
 if TYPE_CHECKING:
     from typing import Dict, Callable, SupportsInt, Union, AsyncGenerator, Tuple, Optional
