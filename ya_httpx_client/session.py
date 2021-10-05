@@ -1,6 +1,10 @@
 import asyncio
+import sys
 from typing import TYPE_CHECKING
-from contextlib import asynccontextmanager
+if sys.version_info >= (3, 7):
+    from contextlib import asynccontextmanager
+else:
+    from async_generator import asynccontextmanager
 
 import httpx
 from yapapi_service_manager import ServiceManager

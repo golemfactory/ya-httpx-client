@@ -58,7 +58,7 @@ class Cluster:
 
     def start(self) -> None:
         if self._new_services_starter_task is None:
-            self._new_services_starter_task = asyncio.create_task(self._start_new_services())
+            self._new_services_starter_task = asyncio.get_event_loop().create_task(self._start_new_services())
 
     def stop(self) -> None:
         for task in self._manager_tasks:
@@ -75,7 +75,8 @@ class Cluster:
     async def _start_new_services(self) -> None:
         while True:
             expected_cnt = int(self.expected_cnt)
-            new_tasks = [asyncio.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
+            loop = asyncio.get_event_loop()
+            new_tasks = [loop.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
             self._manager_tasks += new_tasks
             await asyncio.sleep(1)
 
