@@ -5,13 +5,15 @@ from ya_httpx_client.session import Session
 
 executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta'}
 session = Session(executor_cfg)
+
+CLUSTER_SIZE = 3
 session.add_url(
     url='http://calc',
     image_hash='3bf3667fd14ed87881e7e868f551fac0e4c15fe202e68203b384af98',
     entrypoint=(
         "/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", "0.0.0.0:80", "calculator_server:app", "--daemon",
     ),
-    init_cluster_size=3,
+    init_cluster_size=CLUSTER_SIZE,
 )
 
 
@@ -46,7 +48,7 @@ async def add_many_times(client, total_request_cnt, max_concurrent_requests):
 
 async def run_calculator():
     async with session.client() as client:
-        await add_many_times(client, 50, 3)
+        await add_many_times(client, 5000, CLUSTER_SIZE + 3)
 
     await session.close()
 
