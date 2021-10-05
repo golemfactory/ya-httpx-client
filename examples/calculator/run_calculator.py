@@ -42,7 +42,8 @@ async def add_many_times(client, total_request_cnt, max_concurrent_requests):
             x, y = add_args_queue.get_nowait()
             await add(client, x, y)
 
-    tasks = [asyncio.create_task(add_from_queue()) for _ in range(max_concurrent_requests)]
+    loop = asyncio.get_event_loop()
+    tasks = [loop.create_task(add_from_queue()) for _ in range(max_concurrent_requests)]
     await asyncio.gather(*tasks)
 
 
