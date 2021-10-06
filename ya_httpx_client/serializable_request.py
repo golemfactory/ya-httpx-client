@@ -1,11 +1,12 @@
 import json
 from typing import TYPE_CHECKING
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit, urlparse
 
 if TYPE_CHECKING:
     from typing import Dict, TypedDict, Tuple, Optional, List  # pylint: disable=ungrouped-imports
     import requests
     import httpx
+    import aiohttp
 
     class DictResponse(TypedDict):
         status: int
@@ -26,8 +27,22 @@ class Response:
         self.headers = headers
 
     @classmethod
+    def from_wsmessages(cls, headers_msg: 'aiohttp.WSMessage', content_msg: 'aiohttp.WSMessage') -> 'Response':
+        lines = headers_msg.data.decode('ascii').splitlines()
+
+        status_code = lines[0].split()[1]
+
+        headers = {}
+        for header_line in lines[1:]:
+            if header_line:
+                name, value = header_line.split(': ', maxsplit=1)
+                headers[name] = value
+
+        return Response(status_code, content_msg.data, headers)
+
+    @classmethod
     def from_file(cls, fname: str) -> 'Response':
-        with open(fname, 'r') as f:
+        with open(fname, 'r', encoding='utf-8') as f:
             return cls.from_json(f.read())
 
     @classmethod
@@ -48,7 +63,7 @@ class Response:
         return cls(res.status_code, res.content, dict(res.headers))
 
     def to_file(self, fname: str) -> None:
-        with open(fname, 'w') as f:
+        with open(fname, 'w', encoding='utf-8') as f:
             f.write(self.as_json())
 
     def as_json(self) -> str:
@@ -74,6 +89,10 @@ class Request:
         self.url = url
         self.data = data
         self.headers = headers
+
+    @property
+    def path(self) -> str:
+        return urlparse(self.url).path
 
     def replace_mount_url(self, new_base_url: str) -> None:
         if '://' not in new_base_url:
@@ -104,7 +123,7 @@ class Request:
 
     @classmethod
     def from_file(cls, fname: str) -> 'Request':
-        with open(fname, 'r') as f:
+        with open(fname, 'r', encoding='utf-8') as f:
             return cls.from_json(f.read())
 
     @classmethod
@@ -157,7 +176,7 @@ class Request:
         )
 
     def to_file(self, fname: str) -> None:
-        with open(fname, 'w') as f:
+        with open(fname, 'w', encoding='utf-8') as f:
             f.write(self.as_json())
 
     def as_json(self) -> str:
@@ -170,6 +189,22 @@ class Request:
             'data': self.data.decode('utf-8'),
             'headers': self.headers,
         }
+
+    def as_raw_request_str(self) -> str:
+        return (
+            f"{self.method.upper()} {self.path} HTTP/1.0"
+            f"{self.raw_headers_str()}"
+            "\r\n"
+            f"{self.raw_body_str()}"
+        )
+
+    def raw_headers_str(self) -> str:
+        lines = [": ".join(key_val) + "\r\n" for key_val in self.headers.items()]
+        headers = "".join(lines)
+        return headers
+
+    def raw_body_str(self):
+        return self.data.decode()
 
     def as_requests_request(self) -> 'requests.Request':
         #   Imported here, because we use this only on the provider side

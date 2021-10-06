@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+
+          # goth-based tests
+          pip install goth
           pip install -e .[requestor]
           pip install -e .[provider]
           pip install -r examples/calculator/requirements.txt

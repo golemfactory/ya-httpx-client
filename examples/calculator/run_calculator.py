@@ -2,17 +2,19 @@ import asyncio
 
 from ya_httpx_client.session import Session
 
-executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
+
+executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta'}
 session = Session(executor_cfg)
 
-
-@session.startup(
+CLUSTER_SIZE = 3
+session.add_url(
     url='http://calc',
-    image_hash='1f43e06ecc4ef40084efcf57131aa6056c57b5732bef2bcb6a8cdad2',
-    init_cluster_size=3,
+    image_hash='3bf3667fd14ed87881e7e868f551fac0e4c15fe202e68203b384af98',
+    entrypoint=(
+        "/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", "0.0.0.0:80", "calculator_server:app", "--daemon",
+    ),
+    init_cluster_size=CLUSTER_SIZE,
 )
-def calculator_startup(ctx, listen_on):
-    ctx.run("/usr/local/bin/gunicorn", "--chdir", "/golem/run", "-b", listen_on, "calculator_server:app", "--daemon")
 
 
 async def add(client, x, y):
@@ -40,13 +42,14 @@ async def add_many_times(client, total_request_cnt, max_concurrent_requests):
             x, y = add_args_queue.get_nowait()
             await add(client, x, y)
 
-    tasks = [asyncio.create_task(add_from_queue()) for _ in range(max_concurrent_requests)]
+    loop = asyncio.get_event_loop()
+    tasks = [loop.create_task(add_from_queue()) for _ in range(max_concurrent_requests)]
     await asyncio.gather(*tasks)
 
 
 async def run_calculator():
     async with session.client() as client:
-        await add_many_times(client, 50, 3)
+        await add_many_times(client, 50, CLUSTER_SIZE + 3)
 
     await session.close()
 

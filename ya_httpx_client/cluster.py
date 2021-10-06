@@ -1,13 +1,14 @@
 import asyncio
-import uuid
 from typing import TYPE_CHECKING
 
-from .service_base import ServiceBase
+from yapapi.payload import vm
+
+from . import service
 
 if TYPE_CHECKING:
-    from typing import Callable, Union, SupportsInt, List, Type, Optional
+    from typing import Callable, Union, SupportsInt, List, Optional, Tuple
     from yapapi_service_manager import ServiceManager
-    from yapapi import WorkContext
+    from .network_wrapper import NetworkWrapper
 
 
 class Cluster:
@@ -18,10 +19,22 @@ class Cluster:
        should be merged into the same cluster-wrapper-thingy, but we can't do this without yapapi-side modifications.
        Currently I don't think an instance of `yapapi.Cluster` class could be used instead of this one.
     '''
-    def __init__(self, manager: 'ServiceManager', image_hash: str, start_steps: 'Callable[[WorkContext, str], None]'):
+
+    #   If True, requests will be forwarded via VPN
+    #   If False, requests will be serialized to a temporary file
+    USE_VPN = True
+
+    def __init__(
+            self,
+            manager: 'ServiceManager',
+            image_hash: str,
+            entrypoint: 'Optional[Tuple[str, ...]]',
+            network_wrapper: 'NetworkWrapper'
+    ):
         self.manager = manager
         self.image_hash = image_hash
-        self.start_steps = start_steps
+        self.entrypoint = entrypoint
+        self.network_wrapper = network_wrapper
 
         #   This queue is filled by YagnaTransport and emptied by Service instances
         self.request_queue: asyncio.Queue = asyncio.Queue()
@@ -38,9 +51,6 @@ class Cluster:
         #   (and thus to a single instance of a running service, assuming it already started and didn't stop)
         self._manager_tasks: 'List[asyncio.Task]' = []
 
-        #   This is a workaround for a missing yapapi feature
-        self._cls: 'Type[ServiceBase]' = self._create_cls()
-
     @property
     def cnt(self) -> int:
         current_manager_tasks = [task for task in self._manager_tasks if not task.done()]
@@ -48,7 +58,7 @@ class Cluster:
 
     def start(self) -> None:
         if self._new_services_starter_task is None:
-            self._new_services_starter_task = asyncio.create_task(self._start_new_services())
+            self._new_services_starter_task = asyncio.get_event_loop().create_task(self._start_new_services())
 
     def stop(self) -> None:
         for task in self._manager_tasks:
@@ -65,7 +75,8 @@ class Cluster:
     async def _start_new_services(self) -> None:
         while True:
             expected_cnt = int(self.expected_cnt)
-            new_tasks = [asyncio.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
+            loop = asyncio.get_event_loop()
+            new_tasks = [loop.create_task(self._manage_single_service()) for _ in range(self.cnt, expected_cnt)]
             self._manager_tasks += new_tasks
             await asyncio.sleep(1)
 
@@ -74,7 +85,7 @@ class Cluster:
 
         while True:
             if service_wrapper is None:
-                service_wrapper = self.manager.create_service(self._cls)
+                service_wrapper = await self._create_service_wrapper()
 
             if int(self.expected_cnt) < self.cnt:
                 #   There are too many services running, (at least) one has to stop
@@ -96,9 +107,24 @@ class Cluster:
                 #         use this distinction). Think again if this is harmless.
                 service_wrapper = None
 
-    def _create_cls(self) -> 'Type[ServiceBase]':
-        #   NOTE: this is ugly, but we're waiting for https://github.com/golemfactory/yapapi/issues/372
-        class_name = 'Service_' + uuid.uuid4().hex
+    async def _create_service_wrapper(self):
+        service_cls = self._service_cls()
+        capabilities = service_cls.REQUIRED_CAPABILITIES
+        payload = await vm.repo(image_hash=self.image_hash, capabilities=capabilities)
+        network = await self.network_wrapper.network()
 
-        #   NOTE: 'yhc' is from `ya-httpx-client'
-        return type(class_name, (ServiceBase,), {'_yhc_cluster': self})
+        return self.manager.create_service(
+            service_cls,
+            run_service_params={
+                'payload': payload,
+                'network': network,
+                'instance_params': [{
+                    'entrypoint': self.entrypoint,
+                    'request_queue': self.request_queue,
+                }],
+            },
+        )
+
+    def _service_cls(self):
+        cls = service.VPNService if self.USE_VPN else service.FileSerializationService
+        return cls

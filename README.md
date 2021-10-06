@@ -49,7 +49,7 @@ Usage: `python3 examples/calculator/run_calculator.py`
 #### Requestor proxy
 
 [Second example](examples/requestor_proxy) is a generic HTTP server running on the **requestor** side that:
-* On startup starts a http server on provider(s). There are no assumptions about this server, in our example it is just the calculator from the previous example.
+* On startup starts a http server on provider(s). There are no assumptions about this server, in our example it is a simple echo server.
 * Accepts *any* request
 * Forwards every request to the provider and responds with the response received
 
@@ -62,7 +62,7 @@ Usage:
 pip3 install -r examples/requestor_proxy/requirements.txt
 
 # Start the server
-python3 examples/requestor_proxy/requestor_proxy.py
+python3 examples/requestor_proxy/requestor_proxy.py devnet-beta
 
 # (other console) use the "local" server
 curl http://localhost:5000/add/3/4
@@ -75,24 +75,23 @@ For the details on the configuration, check comments in the code.
 
 ```python
 #   1.  Initialize the session with yapapi.Golem configuration. This should be done exactly once. 
-executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta.2'}
+executor_cfg = {'budget': 10, 'subnet_tag': 'devnet-beta'}
 session = Session(executor_cfg)
 
 #   2.  Define a service. You may define as many services as you want, provided they have different urls.
-@session.startup(
+session.add_url(
     #   All HTTP requests directed to host "some_name" will be processed by ...
     url='http://some_name',
-    #   ...a service running on provider, in VM based on this image ...
+    #   ...a http server running on provider, in VM based on this image ...
     image_hash='25f09e17c34433f979331edf4f3b47b2ca330ba2f8acbfe2e3dbd9c3',
+    #   ... that will be started with this command (this should start the server in the background,
+    #   service will be operative only after this command finished) ...
+    entrypoint=("sh", "-c", "start_my_http_server.sh"),
     #   ... and to be more exact, by one of indistinguishable services running on different providers.
     #   This is the initial number of services that can be changed at any time by session.set_cluster_size().
     #   Also check "load balancing" section.
     init_cluster_size=1
 )
-def calculator_startup(ctx, listen_on):
-    #   Start the HTTP server in the background (service will be operating only after this finished).
-    #   This command will be executed on the provider.
-    ctx.run("sh", "-c", "start_my_http_server.sh")
 
 #   3.  Use the service(s)
 async def run():
@@ -108,6 +107,18 @@ async def run():
 #   4.  Optional: change the number of services. Check "load balancing" section for more details.
 session.set_cluster_size('http://some_name', 7)
 ```
+
+### Communication protocol
+
+There are two communication protocols, determined by `ya_httpx_client.cluster.Cluster.USE_VPN` value, VPN and FileSerialization.
+Differences:
+
+* VPN is faster
+* VPN requires provider supporting `vpn` capability (-> `yagna` 0.8.0 or higher)
+* FileSerialization requires `ya-httpx-client[provider]` installed on provider (--> check some example Dockerfile for details)
+* Http servers running on providers should listen on `0.0.0.0:80` for VPN and on `unix:///tmp/golem.sock` for FileSerialization
+
+VPN is the default mode, other one is legacy - it will probably be removed one day.
 
 ## Load balancing
 
@@ -146,11 +157,5 @@ NOTE: setting size to anything other than an integer should be considered an exp
 
 ## Future development
 
-1. Additional example: `requestor-proxy` - am HTTP server running on **requestor** that serves as a proxy to server(s) running on the provider(s).
-2. Currently, when the service stops, it is restarted on another provider. This makes sense only for stateless services, but there is no way to turn this off.
-   The developer should decide if they want to restart the service or not (or maybe stop the execution?).
-
-## Known issues
-
-1. Communication with providers is quite slow (1-2s for each request). This will be fixed when the new communication options are implemented in [yagna](https://github.com/golemfactory/yagna)
-   (hopefully in the next major release).
+Currently, when the service stops, it is restarted on another provider. This makes sense only for stateless services, but there is no way to turn this off.
+The developer should decide if they want to restart the service or not (or maybe stop the execution?).

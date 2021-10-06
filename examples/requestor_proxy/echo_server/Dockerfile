@@ -8,7 +8,6 @@ VOLUME  /golem/work
 RUN apt-get update && apt-get install -y git
 RUN pip install git+https://github.com/golemfactory/ya-httpx-client.git#egg=ya-httpx-client[provider]
 
-#   And this is calculator-related code (this part will differ in other examples). 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-COPY calculator_server.py /golem/run/calculator_server.py
+#   Install example dependencies & copy code
+RUN pip install Flask==2.0.1 gunicorn==20.1.0
+COPY echo_server.py /golem/run/echo_server.py

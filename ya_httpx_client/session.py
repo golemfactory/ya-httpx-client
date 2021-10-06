@@ -1,16 +1,21 @@
 import asyncio
+import sys
 from typing import TYPE_CHECKING
-from contextlib import asynccontextmanager
 
 import httpx
 from yapapi_service_manager import ServiceManager
 
 from .serializable_request import Request
 from .cluster import Cluster
+from .network_wrapper import NetworkWrapper
+
+if sys.version_info >= (3, 7):
+    from contextlib import asynccontextmanager
+else:
+    from async_generator import asynccontextmanager
 
 if TYPE_CHECKING:
-    from typing import Dict, Callable, SupportsInt, Union, AsyncGenerator  # pylint: disable=ungrouped-imports
-    from yapapi import WorkContext
+    from typing import Dict, Callable, SupportsInt, Union, AsyncGenerator, Tuple, Optional
 
 
 class YagnaTransport(httpx.AsyncBaseTransport):
@@ -33,27 +38,23 @@ class Session:
     def __init__(self, executor_cfg: dict):
         self.manager = ServiceManager(executor_cfg)
         self.clusters: 'Dict[str, Cluster]' = {}
+        self.network_wrapper = NetworkWrapper(self.manager)
 
     def set_cluster_size(self, url: str, size: 'Union[int, Callable[[Cluster], SupportsInt]]') -> None:
         self.clusters[url].set_size(size)
 
-    def startup(
+    def add_url(
         self,
         url: str,
         image_hash: str,
+        entrypoint: 'Optional[Tuple[str, ...]]' = None,
         init_cluster_size: 'Union[int, Callable[[Cluster], SupportsInt]]' = 1
-    ) -> 'Callable[[Callable[[WorkContext, str], None]], None]':
+    ) -> None:
         if url in self.clusters:
             raise KeyError(f'Service for url {url} already exists')
 
-        def define_service(start_steps: 'Callable[[WorkContext, str], None]') -> None:
-            self.clusters[url] = Cluster(self.manager, image_hash, start_steps)
-            self.set_cluster_size(url, init_cluster_size)
-
-        return define_service
-
-    def add_startup(self, start_steps: 'Callable[[WorkContext, str], None]', *args, **kwargs) -> None:
-        self.startup(*args, **kwargs)(start_steps)
+        self.clusters[url] = Cluster(self.manager, image_hash, entrypoint, self.network_wrapper)
+        self.set_cluster_size(url, init_cluster_size)
 
     @asynccontextmanager
     async def client(self, *args, **kwargs) -> 'AsyncGenerator[httpx.AsyncClient, None]':
@@ -73,4 +74,5 @@ class Session:
     async def close(self) -> None:
         for cluster in self.clusters.values():
             cluster.stop()
+        await self.network_wrapper.remove_network()
         await self.manager.close()
