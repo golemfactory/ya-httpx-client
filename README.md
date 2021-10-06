@@ -82,10 +82,10 @@ session = Session(executor_cfg)
 session.add_url(
     #   All HTTP requests directed to host "some_name" will be processed by ...
     url='http://some_name',
-    #   ...a service running on provider, in VM based on this image ...
+    #   ...a http server running on provider, in VM based on this image ...
     image_hash='25f09e17c34433f979331edf4f3b47b2ca330ba2f8acbfe2e3dbd9c3',
-    #   Start the HTTP server in the background (service will be operating only after this finished).
-    #   This command will be executed on the provider.
+    #   ... that will be started with this command (this should start the server in the background,
+    #   service will be operative only after this command finished) ...
     entrypoint=("sh", "-c", "start_my_http_server.sh"),
     #   ... and to be more exact, by one of indistinguishable services running on different providers.
     #   This is the initial number of services that can be changed at any time by session.set_cluster_size().
